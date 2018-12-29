@@ -46,7 +46,6 @@
 #include <string.h>
 #include <time.h>
 #include <deque>
-#include <forward_list>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -57,16 +56,22 @@
 #include <set>
 #include <sstream>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "gtest/gtest-spi.h"
 
+#if GTEST_HAS_STD_FORWARD_LIST_
+# include <forward_list>  // NOLINT
+#endif
+
+#if GTEST_LANG_CXX11
+# include <type_traits>
+#endif
+
 namespace testing {
 namespace gmock_matchers_test {
-namespace {
 
 using std::greater;
 using std::less;
@@ -152,19 +157,6 @@ using testing::internal::RE;
 using testing::internal::StreamMatchResultListener;
 using testing::internal::string;
 using testing::internal::Strings;
-
-// Helper for testing container-valued matchers in mock method context. It is
-// important to test matchers in this context, since it requires additional type
-// deduction beyond what EXPECT_THAT does, thus making it more restrictive.
-struct ContainerHelper {
-  MOCK_METHOD1(Call, void(std::vector<std::unique_ptr<int>>));
-};
-
-std::vector<std::unique_ptr<int>> MakeUniquePtrs(const std::vector<int>& ints) {
-  std::vector<std::unique_ptr<int>> pointers;
-  for (int i : ints) pointers.emplace_back(new int(i));
-  return pointers;
-}
 
 // For testing ExplainMatchResultTo().
 class GreaterThanMatcher : public MatcherInterface<int> {
@@ -1183,12 +1175,14 @@ TEST(IsNullTest, MatchesNullPointer) {
 #endif
 }
 
+#if GTEST_LANG_CXX11
 TEST(IsNullTest, StdFunction) {
   const Matcher<std::function<void()>> m = IsNull();
 
   EXPECT_TRUE(m.Matches(std::function<void()>()));
   EXPECT_FALSE(m.Matches([]{}));
 }
+#endif  // GTEST_LANG_CXX11
 
 // Tests that IsNull() describes itself properly.
 TEST(IsNullTest, CanDescribeSelf) {
@@ -1229,12 +1223,14 @@ TEST(NotNullTest, ReferenceToConstLinkedPtr) {
   EXPECT_TRUE(m.Matches(non_null_p));
 }
 
+#if GTEST_LANG_CXX11
 TEST(NotNullTest, StdFunction) {
   const Matcher<std::function<void()>> m = NotNull();
 
   EXPECT_TRUE(m.Matches([]{}));
   EXPECT_FALSE(m.Matches(std::function<void()>()));
 }
+#endif  // GTEST_LANG_CXX11
 
 // Tests that NotNull() describes itself properly.
 TEST(NotNullTest, CanDescribeSelf) {
@@ -1517,6 +1513,7 @@ TEST(KeyTest, MatchesCorrectly) {
   EXPECT_THAT(p, Not(Key(Lt(25))));
 }
 
+#if GTEST_LANG_CXX11
 template <size_t I>
 struct Tag {};
 
@@ -1543,6 +1540,7 @@ TEST(PairTest, MatchesPairWithGetCorrectly) {
   std::vector<PairWithGet> v = {{11, "Foo"}, {29, "gMockIsBestMock"}};
   EXPECT_THAT(v, Contains(Key(29)));
 }
+#endif  // GTEST_LANG_CXX11
 
 TEST(KeyTest, SafelyCastsInnerMatcher) {
   Matcher<int> is_positive = Gt(0);
@@ -1681,12 +1679,7 @@ TEST(PairTest, InsideContainsUsingMap) {
   EXPECT_THAT(container, Not(Contains(Pair(3, _))));
 }
 
-TEST(ContainsTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(Contains(Pointee(2))));
-  helper.Call(MakeUniquePtrs({1, 2}));
-}
-
+#if GTEST_LANG_CXX11
 TEST(PairTest, UseGetInsteadOfMembers) {
   PairWithGet pair{7, "ABC"};
   EXPECT_THAT(pair, Pair(7, "ABC"));
@@ -1696,6 +1689,7 @@ TEST(PairTest, UseGetInsteadOfMembers) {
   std::vector<PairWithGet> v = {{11, "Foo"}, {29, "gMockIsBestMock"}};
   EXPECT_THAT(v, ElementsAre(Pair(11, string("Foo")), Pair(Ge(10), Not(""))));
 }
+#endif  // GTEST_LANG_CXX11
 
 // Tests StartsWith(s).
 
@@ -2666,6 +2660,7 @@ static void AnyOfMatches(int num, const Matcher<int>& m) {
   EXPECT_FALSE(m.Matches(num + 1));
 }
 
+#if GTEST_LANG_CXX11
 static void AnyOfStringMatches(int num, const Matcher<std::string>& m) {
   SCOPED_TRACE(Describe(m));
   EXPECT_FALSE(m.Matches(std::to_string(0)));
@@ -2675,6 +2670,7 @@ static void AnyOfStringMatches(int num, const Matcher<std::string>& m) {
   }
   EXPECT_FALSE(m.Matches(std::to_string(num + 1)));
 }
+#endif
 
 // Tests that AnyOf(m1, ..., mn) matches any value that matches at
 // least one of the given matchers.
@@ -2719,6 +2715,7 @@ TEST(AnyOfTest, MatchesWhenAnyMatches) {
   AnyOfMatches(10, AnyOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 }
 
+#if GTEST_LANG_CXX11
 // Tests the variadic version of the AnyOfMatcher.
 TEST(AnyOfTest, VariadicMatchesWhenAnyMatches) {
   // Also make sure AnyOf is defined in the right namespace and does not depend
@@ -2767,6 +2764,7 @@ TEST(ElementsAreTest, HugeMatcherUnordered) {
                                Eq(3), Eq(9), Eq(12), Eq(11), Ne(122)));
 }
 
+#endif  // GTEST_LANG_CXX11
 
 // Tests that AnyOf(m1, ..., mn) describes itself properly.
 TEST(AnyOfTest, CanDescribeSelf) {
@@ -4137,7 +4135,9 @@ class AClass {
   // A getter that returns a reference to const.
   const std::string& s() const { return s_; }
 
+#if GTEST_LANG_CXX11
   const std::string& s_ref() const & { return s_; }
+#endif
 
   void set_s(const std::string& new_s) { s_ = new_s; }
 
@@ -4194,6 +4194,7 @@ TEST(PropertyTest, WorksForReferenceToConstProperty) {
   EXPECT_FALSE(m_with_name.Matches(a));
 }
 
+#if GTEST_LANG_CXX11
 // Tests that Property(&Foo::property, ...) works when property() is
 // ref-qualified.
 TEST(PropertyTest, WorksForRefQualifiedProperty) {
@@ -4210,6 +4211,7 @@ TEST(PropertyTest, WorksForRefQualifiedProperty) {
   EXPECT_FALSE(m.Matches(a));
   EXPECT_FALSE(m_with_name.Matches(a));
 }
+#endif
 
 // Tests that Property(&Foo::property, ...) works when property()
 // returns a reference to non-const.
@@ -4572,6 +4574,7 @@ TEST(ResultOfTest, WorksForPolymorphicFunctors) {
   EXPECT_FALSE(matcher_string.Matches("shrt"));
 }
 
+#if GTEST_LANG_CXX11
 TEST(ResultOfTest, WorksForPolymorphicFunctorsIgnoringResultType) {
   Matcher<int*> matcher = ResultOf(PolymorphicFunctor(), "good ptr");
 
@@ -4586,6 +4589,7 @@ TEST(ResultOfTest, WorksForLambdas) {
   EXPECT_TRUE(matcher.Matches(3));
   EXPECT_FALSE(matcher.Matches(1));
 }
+#endif
 
 const int* ReferencingFunction(const int& n) { return &n; }
 
@@ -4748,12 +4752,6 @@ TEST(IsEmptyTest, ExplainsResult) {
   EXPECT_EQ("whose size is 1", Explain(m, container));
 }
 
-TEST(IsEmptyTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(IsEmpty()));
-  helper.Call({});
-}
-
 TEST(IsTrueTest, IsTrueIsFalse) {
   EXPECT_THAT(true, IsTrue());
   EXPECT_THAT(false, IsFalse());
@@ -4776,6 +4774,7 @@ TEST(IsTrueTest, IsTrueIsFalse) {
   EXPECT_THAT(&a, Not(IsFalse()));
   EXPECT_THAT(false, Not(IsTrue()));
   EXPECT_THAT(true, Not(IsFalse()));
+#if GTEST_LANG_CXX11
   EXPECT_THAT(std::true_type(), IsTrue());
   EXPECT_THAT(std::true_type(), Not(IsFalse()));
   EXPECT_THAT(std::false_type(), IsFalse());
@@ -4788,6 +4787,7 @@ TEST(IsTrueTest, IsTrueIsFalse) {
   EXPECT_THAT(null_unique, IsFalse());
   EXPECT_THAT(nonnull_unique, IsTrue());
   EXPECT_THAT(nonnull_unique, Not(IsFalse()));
+#endif  // GTEST_LANG_CXX11
 }
 
 TEST(SizeIsTest, ImplementsSizeIs) {
@@ -4820,12 +4820,6 @@ TEST(SizeIsTest, WorksWithReferences) {
   EXPECT_THAT(container, Not(m));
   container.push_back(0);
   EXPECT_THAT(container, m);
-}
-
-TEST(SizeIsTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(SizeIs(3)));
-  helper.Call(MakeUniquePtrs({1, 2, 3}));
 }
 
 // SizeIs should work for any type that provides a size() member function.
@@ -5287,6 +5281,7 @@ TEST(StreamlikeTest, Iteration) {
   }
 }
 
+#if GTEST_HAS_STD_FORWARD_LIST_
 TEST(BeginEndDistanceIsTest, WorksWithForwardList) {
   std::forward_list<int> container;
   EXPECT_THAT(container, BeginEndDistanceIs(0));
@@ -5298,6 +5293,7 @@ TEST(BeginEndDistanceIsTest, WorksWithForwardList) {
   EXPECT_THAT(container, Not(BeginEndDistanceIs(0)));
   EXPECT_THAT(container, BeginEndDistanceIs(2));
 }
+#endif  // GTEST_HAS_STD_FORWARD_LIST_
 
 TEST(BeginEndDistanceIsTest, WorksWithNonStdList) {
   const int a[5] = {1, 2, 3, 4, 5};
@@ -5310,12 +5306,6 @@ TEST(BeginEndDistanceIsTest, CanDescribeSelf) {
   EXPECT_EQ("distance between begin() and end() is equal to 2", Describe(m));
   EXPECT_EQ("distance between begin() and end() isn't equal to 2",
             DescribeNegation(m));
-}
-
-TEST(BeginEndDistanceIsTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(BeginEndDistanceIs(2)));
-  helper.Call(MakeUniquePtrs({1, 2}));
 }
 
 TEST(BeginEndDistanceIsTest, ExplainsResult) {
@@ -5479,19 +5469,13 @@ TEST(IsSupersetOfTest, MatchAndExplain) {
                                  " - element #2 is matched by matcher #0"));
 }
 
+#if GTEST_HAS_STD_INITIALIZER_LIST_
 TEST(IsSupersetOfTest, WorksForRhsInitializerList) {
   const int numbers[] = {1, 3, 6, 2, 4, 5};
   EXPECT_THAT(numbers, IsSupersetOf({1, 2}));
   EXPECT_THAT(numbers, Not(IsSupersetOf({3, 0})));
 }
-
-TEST(IsSupersetOfTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(IsSupersetOf({Pointee(1)})));
-  helper.Call(MakeUniquePtrs({1, 2}));
-  EXPECT_CALL(helper, Call(Not(IsSupersetOf({Pointee(1), Pointee(2)}))));
-  helper.Call(MakeUniquePtrs({2}));
-}
+#endif
 
 TEST(IsSubsetOfTest, WorksForNativeArray) {
   const int subset[] = {1, 4};
@@ -5607,19 +5591,13 @@ TEST(IsSubsetOfTest, MatchAndExplain) {
                                  " - element #1 is matched by matcher #2"));
 }
 
+#if GTEST_HAS_STD_INITIALIZER_LIST_
 TEST(IsSubsetOfTest, WorksForRhsInitializerList) {
   const int numbers[] = {1, 2, 3};
   EXPECT_THAT(numbers, IsSubsetOf({1, 2, 3, 4}));
   EXPECT_THAT(numbers, Not(IsSubsetOf({1, 2})));
 }
-
-TEST(IsSubsetOfTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(IsSubsetOf({Pointee(1), Pointee(2)})));
-  helper.Call(MakeUniquePtrs({1}));
-  EXPECT_CALL(helper, Call(Not(IsSubsetOf({Pointee(1)}))));
-  helper.Call(MakeUniquePtrs({2}));
-}
+#endif
 
 // Tests using ElementsAre() and ElementsAreArray() with stream-like
 // "containers".
@@ -5652,15 +5630,6 @@ TEST(ElementsAreTest, WorksWithUncopyable) {
   objs[0].set_value(-3);
   objs[1].set_value(1);
   EXPECT_THAT(objs, ElementsAre(UncopyableIs(-3), Truly(ValueIsPositive)));
-}
-
-TEST(ElementsAreTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(ElementsAre(Pointee(1), Pointee(2))));
-  helper.Call(MakeUniquePtrs({1, 2}));
-
-  EXPECT_CALL(helper, Call(ElementsAreArray({Pointee(3), Pointee(4)})));
-  helper.Call(MakeUniquePtrs({3, 4}));
 }
 
 TEST(ElementsAreTest, TakesStlContainer) {
@@ -5730,6 +5699,7 @@ TEST(UnorderedElementsAreArrayTest, TakesStlContainer) {
   EXPECT_THAT(actual, Not(UnorderedElementsAreArray(expected)));
 }
 
+#if GTEST_HAS_STD_INITIALIZER_LIST_
 
 TEST(UnorderedElementsAreArrayTest, TakesInitializerList) {
   const int a[5] = {2, 1, 4, 5, 3};
@@ -5763,13 +5733,7 @@ TEST(UnorderedElementsAreArrayTest,
       {Eq(1), Ne(-2), Ge(3), Le(4), Eq(6)})));
 }
 
-
-TEST(UnorderedElementsAreArrayTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper,
-              Call(UnorderedElementsAreArray({Pointee(1), Pointee(2)})));
-  helper.Call(MakeUniquePtrs({2, 1}));
-}
+#endif  // GTEST_HAS_STD_INITIALIZER_LIST_
 
 class UnorderedElementsAreTest : public testing::Test {
  protected:
@@ -5816,12 +5780,6 @@ TEST_F(UnorderedElementsAreTest, WorksForStreamlike) {
 
   EXPECT_THAT(s, UnorderedElementsAre(1, 2, 3, 4, 5));
   EXPECT_THAT(s, Not(UnorderedElementsAre(2, 2, 3, 4, 5)));
-}
-
-TEST_F(UnorderedElementsAreTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(UnorderedElementsAre(Pointee(1), Pointee(2))));
-  helper.Call(MakeUniquePtrs({2, 1}));
 }
 
 // One naive implementation of the matcher runs in O(N!) time, which is too
@@ -6374,12 +6332,6 @@ TEST(EachTest, WorksForNativeArrayAsTuple) {
   EXPECT_THAT(std::make_tuple(pointer, 2), Not(Each(Gt(1))));
 }
 
-TEST(EachTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(Each(Pointee(Gt(0)))));
-  helper.Call(MakeUniquePtrs({1, 2}));
-}
-
 // For testing Pointwise().
 class IsHalfOfMatcher {
  public:
@@ -6467,6 +6419,7 @@ TEST(PointwiseTest, WorksForVectorOfBool) {
   EXPECT_THAT(lhs, Not(Pointwise(Eq(), rhs)));
 }
 
+#if GTEST_HAS_STD_INITIALIZER_LIST_
 
 TEST(PointwiseTest, WorksForRhsInitializerList) {
   const vector<int> lhs{2, 4, 6};
@@ -6474,6 +6427,7 @@ TEST(PointwiseTest, WorksForRhsInitializerList) {
   EXPECT_THAT(lhs, Not(Pointwise(Lt(), {3, 3, 7})));
 }
 
+#endif  // GTEST_HAS_STD_INITIALIZER_LIST_
 
 TEST(PointwiseTest, RejectsWrongSize) {
   const double lhs[2] = {1, 2};
@@ -6514,17 +6468,6 @@ TEST(PointwiseTest, AllowsMonomorphicInnerMatcher) {
   const Matcher<std::tuple<double, int>> m2 = IsHalfOf();
   EXPECT_THAT(lhs, Pointwise(m2, rhs));
   EXPECT_EQ("", Explain(Pointwise(m2, rhs), lhs));
-}
-
-MATCHER(PointeeEquals, "Points to an equal value") {
-  return ExplainMatchResult(::testing::Pointee(::testing::get<1>(arg)),
-                            ::testing::get<0>(arg), result_listener);
-}
-
-TEST(PointwiseTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(Pointwise(PointeeEquals(), std::vector<int>{1, 2})));
-  helper.Call(MakeUniquePtrs({1, 2}));
 }
 
 TEST(UnorderedPointwiseTest, DescribesSelf) {
@@ -6587,6 +6530,7 @@ TEST(UnorderedPointwiseTest, WorksForRhsNativeArray) {
   EXPECT_THAT(lhs, Not(UnorderedPointwise(Lt(), rhs)));
 }
 
+#if GTEST_HAS_STD_INITIALIZER_LIST_
 
 TEST(UnorderedPointwiseTest, WorksForRhsInitializerList) {
   const vector<int> lhs{2, 4, 6};
@@ -6594,6 +6538,7 @@ TEST(UnorderedPointwiseTest, WorksForRhsInitializerList) {
   EXPECT_THAT(lhs, Not(UnorderedPointwise(Lt(), {1, 1, 7})));
 }
 
+#endif  // GTEST_HAS_STD_INITIALIZER_LIST_
 
 TEST(UnorderedPointwiseTest, RejectsWrongSize) {
   const double lhs[2] = {1, 2};
@@ -6637,13 +6582,6 @@ TEST(UnorderedPointwiseTest, AllowsMonomorphicInnerMatcher) {
   // implicitly cast to std::tuple<double, int>.
   const Matcher<std::tuple<double, int>> m2 = IsHalfOf();
   EXPECT_THAT(lhs, UnorderedPointwise(m2, rhs));
-}
-
-TEST(UnorderedPointwiseTest, WorksWithMoveOnly) {
-  ContainerHelper helper;
-  EXPECT_CALL(helper, Call(UnorderedPointwise(PointeeEquals(),
-                                              std::vector<int>{1, 2})));
-  helper.Call(MakeUniquePtrs({2, 1}));
 }
 
 // Sample optional type implementation with minimal requirements for use with
@@ -6786,6 +6724,7 @@ TEST(AnyWithTest, TestBadCastType) {
   EXPECT_FALSE(m.Matches(SampleAnyType(1)));
 }
 
+#if GTEST_LANG_CXX11
 TEST(AnyWithTest, TestUseInContainers) {
   std::vector<SampleAnyType> a;
   a.emplace_back(1);
@@ -6802,6 +6741,7 @@ TEST(AnyWithTest, TestUseInContainers) {
                                    AnyWith<std::string>("merhaba"),
                                    AnyWith<std::string>("salut")}));
 }
+#endif  //  GTEST_LANG_CXX11
 TEST(AnyWithTest, TestCompare) {
   EXPECT_THAT(SampleAnyType(1), AnyWith<int>(Gt(0)));
 }
@@ -7036,7 +6976,8 @@ TEST_F(PredicateFormatterFromMatcherTest, NoShortCircuitOnFailure) {
   EXPECT_FALSE(result);  // Implicit cast to bool.
   std::string expect =
       "Value of: dummy-name\nExpected: [DescribeTo]\n"
-      "  Actual: 1, [MatchAndExplain]";
+      "  Actual: 1" +
+      OfType(kMatcherType) + ", [MatchAndExplain]";
   EXPECT_EQ(expect, result.message());
 }
 
@@ -7047,11 +6988,11 @@ TEST_F(PredicateFormatterFromMatcherTest, DetectsFlakyShortCircuit) {
       "Value of: dummy-name\nExpected: [DescribeTo]\n"
       "  The matcher failed on the initial attempt; but passed when rerun to "
       "generate the explanation.\n"
-      "  Actual: 2, [MatchAndExplain]";
+      "  Actual: 2" +
+      OfType(kMatcherType) + ", [MatchAndExplain]";
   EXPECT_EQ(expect, result.message());
 }
 
-}  // namespace
 }  // namespace gmock_matchers_test
 }  // namespace testing
 

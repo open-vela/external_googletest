@@ -489,6 +489,7 @@ TEST(ElementsAreArrayTest, CanBeCreatedWithVector) {
   EXPECT_THAT(test_vector, Not(ElementsAreArray(expected)));
 }
 
+#if GTEST_HAS_STD_INITIALIZER_LIST_
 
 TEST(ElementsAreArrayTest, TakesInitializerList) {
   const int a[5] = { 1, 2, 3, 4, 5 };
@@ -524,6 +525,7 @@ TEST(ElementsAreArrayTest,
       { Eq(1), Ne(-2), Ge(3), Le(4), Eq(6) })));
 }
 
+#endif  // GTEST_HAS_STD_INITIALIZER_LIST_
 
 TEST(ElementsAreArrayTest, CanBeCreatedWithMatcherVector) {
   const int a[] = { 1, 2, 3 };
@@ -1137,6 +1139,7 @@ TEST(AnyOfTest, DoesNotCallAnyOfUnqualified) {
 
 }  // namespace adl_test
 
+#if GTEST_LANG_CXX11
 
 TEST(AllOfTest, WorksOnMoveOnlyType) {
   std::unique_ptr<int> p(new int(3));
@@ -1174,6 +1177,7 @@ TEST(MatcherPMacroTest, WorksOnMoveOnlyType) {
   EXPECT_THAT(p, Not(UniquePointee(2)));
 }
 
+#endif  // GTEST_LASNG_CXX11
 
 }  // namespace
 

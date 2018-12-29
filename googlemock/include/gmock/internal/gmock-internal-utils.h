@@ -528,6 +528,7 @@ struct BooleanConstant {};
 // reduce code size.
 GTEST_API_ void IllegalDoDefault(const char* file, int line);
 
+#if GTEST_LANG_CXX11
 // Helper types for Apply() below.
 template <size_t... Is> struct int_pack { typedef int_pack type; };
 
@@ -553,6 +554,7 @@ auto Apply(F&& f, Tuple&& args)
   return ApplyImpl(std::forward<F>(f), std::forward<Tuple>(args),
                    make_int_pack<std::tuple_size<Tuple>::value>());
 }
+#endif
 
 
 #ifdef _MSC_VER
