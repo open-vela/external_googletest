@@ -220,6 +220,7 @@ class MyNonDefaultConstructible {
   int value_;
 };
 
+#if GTEST_LANG_CXX11
 
 TEST(BuiltInDefaultValueTest, ExistsForDefaultConstructibleType) {
   EXPECT_TRUE(BuiltInDefaultValue<MyDefaultConstructible>::Exists());
@@ -229,6 +230,7 @@ TEST(BuiltInDefaultValueTest, IsDefaultConstructedForDefaultConstructibleType) {
   EXPECT_EQ(42, BuiltInDefaultValue<MyDefaultConstructible>::Get().value());
 }
 
+#endif  // GTEST_LANG_CXX11
 
 TEST(BuiltInDefaultValueTest, DoesNotExistForNonDefaultConstructibleType) {
   EXPECT_FALSE(BuiltInDefaultValue<MyNonDefaultConstructible>::Exists());
@@ -298,6 +300,7 @@ TEST(DefaultValueDeathTest, GetReturnsBuiltInDefaultValueWhenUnset) {
   }, "");
 }
 
+#if GTEST_HAS_STD_UNIQUE_PTR_
 TEST(DefaultValueTest, GetWorksForMoveOnlyIfSet) {
   EXPECT_TRUE(DefaultValue<std::unique_ptr<int>>::Exists());
   EXPECT_TRUE(DefaultValue<std::unique_ptr<int>>::Get() == nullptr);
@@ -308,6 +311,7 @@ TEST(DefaultValueTest, GetWorksForMoveOnlyIfSet) {
   std::unique_ptr<int> i = DefaultValue<std::unique_ptr<int>>::Get();
   EXPECT_EQ(42, *i);
 }
+#endif  // GTEST_HAS_STD_UNIQUE_PTR_
 
 // Tests that DefaultValue<void>::Get() returns void.
 TEST(DefaultValueTest, GetWorksForVoid) {
@@ -639,6 +643,7 @@ TEST(ReturnNullTest, WorksInPointerReturningFunction) {
   EXPECT_TRUE(a2.Perform(std::make_tuple(true)) == nullptr);
 }
 
+#if GTEST_HAS_STD_UNIQUE_PTR_
 // Tests that ReturnNull() returns NULL for shared_ptr and unique_ptr returning
 // functions.
 TEST(ReturnNullTest, WorksInSmartPointerReturningFunction) {
@@ -648,6 +653,7 @@ TEST(ReturnNullTest, WorksInSmartPointerReturningFunction) {
   const Action<std::shared_ptr<int>(std::string)> a2 = ReturnNull();
   EXPECT_TRUE(a2.Perform(std::make_tuple("foo")) == nullptr);
 }
+#endif  // GTEST_HAS_STD_UNIQUE_PTR_
 
 // Tests that ReturnRef(v) works for reference types.
 TEST(ReturnRefTest, WorksForReference) {
@@ -700,12 +706,14 @@ class MockClass {
 
   MOCK_METHOD1(IntFunc, int(bool flag));  // NOLINT
   MOCK_METHOD0(Foo, MyNonDefaultConstructible());
+#if GTEST_HAS_STD_UNIQUE_PTR_
   MOCK_METHOD0(MakeUnique, std::unique_ptr<int>());
   MOCK_METHOD0(MakeUniqueBase, std::unique_ptr<Base>());
   MOCK_METHOD0(MakeVectorUnique, std::vector<std::unique_ptr<int>>());
   MOCK_METHOD1(TakeUnique, int(std::unique_ptr<int>));
   MOCK_METHOD2(TakeUnique,
                int(const std::unique_ptr<int>&, std::unique_ptr<int>));
+#endif
 
  private:
   GTEST_DISALLOW_COPY_AND_ASSIGN_(MockClass);
@@ -1257,6 +1265,7 @@ TEST(ByRefTest, PrintsCorrectly) {
   EXPECT_EQ(expected.str(), actual.str());
 }
 
+#if GTEST_HAS_STD_UNIQUE_PTR_
 
 std::unique_ptr<int> UniquePtrSource() {
   return std::unique_ptr<int>(new int(19));
@@ -1369,7 +1378,9 @@ TEST(MockMethodTest, CanTakeMoveOnlyValue) {
   EXPECT_EQ(42, *saved);
 }
 
+#endif  // GTEST_HAS_STD_UNIQUE_PTR_
 
+#if GTEST_LANG_CXX11
 // Tests for std::function based action.
 
 int Add(int val, int& ref, int* ptr) {  // NOLINT
@@ -1465,6 +1476,7 @@ TEST(MoveOnlyArgumentsTest, ReturningActions) {
   EXPECT_EQ(x, 3);
 }
 
+#endif  // GTEST_LANG_CXX11
 
 }  // Unnamed namespace
 
