@@ -1087,11 +1087,11 @@ class TestEventListener {
   virtual void OnEnvironmentsSetUpEnd(const UnitTest& unit_test) = 0;
 
   // Fired before the test suite starts.
-  virtual void OnTestSuiteStart(const TestSuite& /*test_suite*/) {}
+  virtual void OnTestSuiteStart(const TestSuite& test_suite) {}
 
   //  Legacy API is deprecated but still available
 #ifndef GTEST_REMOVE_LEGACY_TEST_CASEAPI_
-  virtual void OnTestCaseStart(const TestCase& /*test_case*/) {}
+  virtual void OnTestCaseStart(const TestCase& test_case) {}
 #endif  //  GTEST_REMOVE_LEGACY_TEST_CASEAPI_
 
   // Fired before the test starts.
@@ -1106,11 +1106,11 @@ class TestEventListener {
   virtual void OnTestEnd(const TestInfo& test_info) = 0;
 
   // Fired after the test suite ends.
-  virtual void OnTestSuiteEnd(const TestSuite& /*test_suite*/) {}
+  virtual void OnTestSuiteEnd(const TestSuite& test_suite) {}
 
 //  Legacy API is deprecated but still available
 #ifndef GTEST_REMOVE_LEGACY_TEST_CASEAPI_
-  virtual void OnTestCaseEnd(const TestCase& /*test_case*/) {}
+  virtual void OnTestCaseEnd(const TestCase& test_case) {}
 #endif  //  GTEST_REMOVE_LEGACY_TEST_CASEAPI_
 
   // Fired before environment tear-down for each iteration of tests starts.
@@ -1142,7 +1142,7 @@ class EmptyTestEventListener : public TestEventListener {
   void OnTestSuiteStart(const TestSuite& /*test_suite*/) override {}
 //  Legacy API is deprecated but still available
 #ifndef GTEST_REMOVE_LEGACY_TEST_CASEAPI_
-  void OnTestCaseStart(const TestCase& /*test_case*/) override {}
+  void OnTestCaseStart(const TestCase& tc /*test_suite*/) override {}
 #endif  //  GTEST_REMOVE_LEGACY_TEST_CASEAPI_
 
   void OnTestStart(const TestInfo& /*test_info*/) override {}
@@ -1150,7 +1150,7 @@ class EmptyTestEventListener : public TestEventListener {
   void OnTestEnd(const TestInfo& /*test_info*/) override {}
   void OnTestSuiteEnd(const TestSuite& /*test_suite*/) override {}
 #ifndef GTEST_REMOVE_LEGACY_TEST_CASEAPI_
-  void OnTestCaseEnd(const TestCase& /*test_case*/) override {}
+  void OnTestCaseEnd(const TestCase& tc /*test_suite*/) override {}
 #endif  //  GTEST_REMOVE_LEGACY_TEST_CASEAPI_
 
   void OnEnvironmentsTearDownStart(const UnitTest& /*unit_test*/) override {}
@@ -2498,20 +2498,6 @@ int RUN_ALL_TESTS() GTEST_MUST_USE_RESULT_;
 inline int RUN_ALL_TESTS() {
   return ::testing::UnitTest::GetInstance()->Run();
 }
-
-#ifdef ARDUINO
-inline void gtest_setup() {
-  // Since Arduino doesn't have a command line, fake out the argc/argv arguments
-  int argc = 1;
-  const auto arg0 = "PlatformIO";
-  char* argv0 = const_cast<char*>(arg0);
-  char** argv = &argv0;
-
-  testing::InitGoogleTest(&argc, argv);
-}
-
-inline void gtest_loop() { RUN_ALL_TESTS(); }
-#endif
 
 GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
 
