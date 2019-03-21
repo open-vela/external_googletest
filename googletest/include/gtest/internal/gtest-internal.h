@@ -80,6 +80,7 @@
 // Stringifies its argument.
 #define GTEST_STRINGIFY_(name) #name
 
+class ProtocolMessage;
 namespace proto2 { class Message; }
 
 namespace testing {
@@ -889,10 +890,12 @@ struct RemoveConst<const T[N]> {
     GTEST_REMOVE_CONST_(GTEST_REMOVE_REFERENCE_(T))
 
 // IsAProtocolMessage<T>::value is a compile-time bool constant that's
-// true iff T is type proto2::Message or a subclass of it.
+// true iff T is type ProtocolMessage, proto2::Message, or a subclass
+// of those.
 template <typename T>
 struct IsAProtocolMessage
     : public bool_constant<
+  std::is_convertible<const T*, const ::ProtocolMessage*>::value ||
   std::is_convertible<const T*, const ::proto2::Message*>::value> {
 };
 
