@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Copyright 2017 Google Inc.
 # All Rights Reserved.
 #
@@ -27,80 +28,17 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Author: misterg@google.com (Gennadiy Civil)
-#
-#   Bazel Build for Google C++ Testing Framework(Google Test)-googlemock
 
-licenses(["notice"])
+set -e
 
-# Tests for GMock itself
-cc_test(
-    name = "gmock_all_test",
-    size = "small",
-    srcs = glob(include = ["gmock-*.cc"]),
-    linkopts = select({
-        "//:windows": [],
-        "//conditions:default": ["-pthread"],
-    }),
-    deps = ["//:gtest"],
-)
+. ci/get-nprocessors.sh
 
-# Python tests
-py_library(
-    name = "gmock_test_utils",
-    testonly = 1,
-    srcs = ["gmock_test_utils.py"],
-)
+# Create the configuration script
+autoreconf -i
 
-cc_binary(
-    name = "gmock_leak_test_",
-    testonly = 1,
-    srcs = ["gmock_leak_test_.cc"],
-    deps = ["//:gtest_main"],
-)
+# Run in a subdirectory to keep the sources clean
+mkdir build || true
+cd build
+../configure
 
-py_test(
-    name = "gmock_leak_test",
-    size = "medium",
-    srcs = ["gmock_leak_test.py"],
-    data = [
-        ":gmock_leak_test_",
-        ":gmock_test_utils",
-    ],
-)
-
-cc_test(
-    name = "gmock_link_test",
-    size = "small",
-    srcs = [
-        "gmock_link2_test.cc",
-        "gmock_link_test.cc",
-        "gmock_link_test.h",
-    ],
-    deps = ["//:gtest_main"],
-)
-
-cc_binary(
-    name = "gmock_output_test_",
-    srcs = ["gmock_output_test_.cc"],
-    deps = ["//:gtest"],
-)
-
-py_test(
-    name = "gmock_output_test",
-    size = "medium",
-    srcs = ["gmock_output_test.py"],
-    data = [
-        ":gmock_output_test_",
-        ":gmock_output_test_golden.txt",
-    ],
-    deps = [":gmock_test_utils"],
-)
-
-cc_test(
-    name = "gmock_test",
-    size = "small",
-    srcs = ["gmock_test.cc"],
-    deps = ["//:gtest_main"],
-)
+make -j ${NPROCESSORS:-2}
