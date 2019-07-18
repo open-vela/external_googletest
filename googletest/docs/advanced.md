@@ -1222,15 +1222,15 @@ First, you subclass the `::testing::Environment` class to define a test
 environment, which knows how to set-up and tear-down:
 
 ```c++
-class Environment : public ::testing::Environment {
+class Environment {
  public:
   virtual ~Environment() {}
 
   // Override this to define how to set up the environment.
-  void SetUp() override {}
+  virtual void SetUp() {}
 
   // Override this to define how to tear down the environment.
-  void TearDown() override {}
+  virtual void TearDown() {}
 };
 ```
 
