@@ -193,7 +193,7 @@ objects, you should use `ASSERT_EQ`.
 
 When doing pointer comparisons use `*_EQ(ptr, nullptr)` and `*_NE(ptr, nullptr)`
 instead of `*_EQ(ptr, NULL)` and `*_NE(ptr, NULL)`. This is because `nullptr` is
-typed while `NULL` is not. See [FAQ](faq.md) for more details.
+typed while `NULL` is not. See [FAQ](faq.md)for more details.
 
 If you're working with floating point numbers, you may want to use the floating
 point variations of some of these macros in order to avoid problems caused by
@@ -213,12 +213,18 @@ as `ASSERT_EQ(expected, actual)`, so lots of existing code uses this order. Now
 The assertions in this group compare two **C strings**. If you want to compare
 two `string` objects, use `EXPECT_EQ`, `EXPECT_NE`, and etc instead.
 
-| Fatal assertion                | Nonfatal assertion             | Verifies                                                 |
-| --------------------------     | ------------------------------ | -------------------------------------------------------- |
-| `ASSERT_STREQ(str1,str2);`     | `EXPECT_STREQ(str1,str2);`     | the two C strings have the same content   		     |
-| `ASSERT_STRNE(str1,str2);`     | `EXPECT_STRNE(str1,str2);`     | the two C strings have different contents 		     |
-| `ASSERT_STRCASEEQ(str1,str2);` | `EXPECT_STRCASEEQ(str1,str2);` | the two C strings have the same content, ignoring case   |
-| `ASSERT_STRCASENE(str1,str2);` | `EXPECT_STRCASENE(str1,str2);` | the two C strings have different contents, ignoring case |
+| Fatal assertion         | Nonfatal assertion      | Verifies               |
+| ----------------------- | ----------------------- | ---------------------- |
+| `ASSERT_STREQ(str1,     | `EXPECT_STREQ(str1,     | the two C strings have |
+: str2);`                 : str2);`                 : the same content       :
+| `ASSERT_STRNE(str1,     | `EXPECT_STRNE(str1,     | the two C strings have |
+: str2);`                 : str2);`                 : different contents     :
+| `ASSERT_STRCASEEQ(str1, | `EXPECT_STRCASEEQ(str1, | the two C strings have |
+: str2);`                 : str2);`                 : the same content,      :
+:                         :                         : ignoring case          :
+| `ASSERT_STRCASENE(str1, | `EXPECT_STRCASENE(str1, | the two C strings have |
+: str2);`                 : str2);`                 : different contents,    :
+:                         :                         : ignoring case          :
 
 Note that "CASE" in an assertion name means that case is ignored. A `NULL`
 pointer and an empty string are considered *different*.
@@ -450,7 +456,7 @@ When invoked, the `RUN_ALL_TESTS()` macro:
 
 *   Deletes the fixture.
 
-*   Restores the state of all googletest flags
+*   Restores the state of all all googletest flags
 
 *   Repeats the above steps for the next test, until all tests have run.
 
