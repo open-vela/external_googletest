@@ -599,10 +599,10 @@ which must be a permanent callback.
 **Notes:**
 
 1.  The `MATCHER*` macros cannot be used inside a function or class.
-2.  The matcher body must be *purely functional* (i.e. it cannot have any side
+1.  The matcher body must be *purely functional* (i.e. it cannot have any side
     effect, and the result must not depend on anything other than the value
     being matched and the matcher parameters).
-3.  You can use `PrintToString(x)` to convert a value `x` of any type to a
+1.  You can use `PrintToString(x)` to convert a value `x` of any type to a
     string.
 
 ### Actions {#ActionList}
@@ -886,12 +886,12 @@ you can do it earlier:
 using ::testing::Mock;
 ...
 // Verifies and removes the expectations on mock_obj;
-// returns true if successful.
+// returns true iff successful.
 Mock::VerifyAndClearExpectations(&mock_obj);
 ...
 // Verifies and removes the expectations on mock_obj;
 // also removes the default actions set by ON_CALL();
-// returns true if successful.
+// returns true iff successful.
 Mock::VerifyAndClear(&mock_obj);
 ```
 

@@ -250,8 +250,11 @@
 // overloading matchers based on parameter types (as opposed to just
 // based on the number of parameters).
 //
-// MATCHER*() can only be used in a namespace scope as templates cannot be
-// declared inside of a local class.
+// MATCHER*() can only be used in a namespace scope.  The reason is
+// that C++ doesn't yet allow function-local types to be used to
+// instantiate templates.  The up-coming C++0x standard will fix this.
+// Once that's done, we'll consider supporting using MATCHER*() inside
+// a function.
 //
 // More Information
 // ================
