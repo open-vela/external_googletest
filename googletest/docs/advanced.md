@@ -101,11 +101,13 @@ If you already have a function or functor that returns `bool` (or a type that
 can be implicitly converted to `bool`), you can use it in a *predicate
 assertion* to get the function arguments printed for free:
 
-| Fatal assertion                   | Nonfatal assertion                | Verifies                    |
-| --------------------------------- | --------------------------------- | --------------------------- |
-| `ASSERT_PRED1(pred1, val1)`       | `EXPECT_PRED1(pred1, val1)`       | `pred1(val1)` is true       |
-| `ASSERT_PRED2(pred2, val1, val2)` | `EXPECT_PRED2(pred2, val1, val2)` | `pred1(val1, val2)` is true |
-| `...`                             | `...`                             | `...`                       |
+| Fatal assertion      | Nonfatal assertion   | Verifies                    |
+| -------------------- | -------------------- | --------------------------- |
+| `ASSERT_PRED1(pred1, | `EXPECT_PRED1(pred1, | `pred1(val1)` is true       |
+: val1);`              : val1);`              :                             :
+| `ASSERT_PRED2(pred2, | `EXPECT_PRED2(pred2, | `pred2(val1, val2)` is true |
+: val1, val2);`        : val1, val2);`        :                             :
+| `...`                | `...`                | ...                         |
 
 In the above, `predn` is an `n`-ary predicate function or functor, where `val1`,
 `val2`, ..., and `valn` are its arguments. The assertion succeeds if the
@@ -328,18 +330,23 @@ want to learn more, see
 
 #### Floating-Point Macros
 
-| Fatal assertion                 | Nonfatal assertion              | Verifies                                 |
-| ------------------------------- | ------------------------------- | ---------------------------------------- |
-| `ASSERT_FLOAT_EQ(val1, val2);`  | `EXPECT_FLOAT_EQ(val1, val2);`  | the two `float` values are almost equal  |
-| `ASSERT_DOUBLE_EQ(val1, val2);` | `EXPECT_DOUBLE_EQ(val1, val2);` | the two `double` values are almost equal |
+| Fatal assertion         | Nonfatal assertion      | Verifies                |
+| ----------------------- | ----------------------- | ----------------------- |
+| `ASSERT_FLOAT_EQ(val1,  | `EXPECT_FLOAT_EQ(val1,  | the two `float` values  |
+: val2);`                 : val2);`                 : are almost equal        :
+| `ASSERT_DOUBLE_EQ(val1, | `EXPECT_DOUBLE_EQ(val1, | the two `double` values |
+: val2);`                 : val2);`                 : are almost equal        :
 
 By "almost equal" we mean the values are within 4 ULP's from each other.
 
 The following assertions allow you to choose the acceptable error bound:
 
-| Fatal assertion                       | Nonfatal assertion                    | Verifies                                                                         |
-| ------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------- |
-| `ASSERT_NEAR(val1, val2, abs_error);` | `EXPECT_NEAR(val1, val2, abs_error);` | the difference between `val1` and `val2` doesn't exceed the given absolute error |
+| Fatal assertion    | Nonfatal assertion       | Verifies                  |
+| ------------------ | ------------------------ | ------------------------- |
+| `ASSERT_NEAR(val1, | `EXPECT_NEAR(val1, val2, | the difference between    |
+: val2, abs_error);` : abs_error);`             : `val1` and `val2` doesn't :
+:                    :                          : exceed the given absolute :
+:                    :                          : error                     :
 
 #### Floating-Point Predicate-Format Functions
 
@@ -362,9 +369,10 @@ Verifies that `val1` is less than, or almost equal to, `val2`. You can replace
 arguments passed to mock objects. A gMock *matcher* is basically a predicate
 that knows how to describe itself. It can be used in these assertion macros:
 
-| Fatal assertion                | Nonfatal assertion             | Verifies              |
-| ------------------------------ | ------------------------------ | --------------------- |
-| `ASSERT_THAT(value, matcher);` | `EXPECT_THAT(value, matcher);` | value matches matcher |
+| Fatal assertion     | Nonfatal assertion             | Verifies              |
+| ------------------- | ------------------------------ | --------------------- |
+| `ASSERT_THAT(value, | `EXPECT_THAT(value, matcher);` | value matches matcher |
+: matcher);`          :                                :                       :
 
 For example, `StartsWith(prefix)` is a matcher that matches a string starting
 with `prefix`, and you can write:
@@ -1143,9 +1151,9 @@ also supports per-test-suite set-up/tear-down. To use it:
 
 1.  In your test fixture class (say `FooTest` ), declare as `static` some member
     variables to hold the shared resources.
-1.  Outside your test fixture class (typically just below it), define those
+2.  Outside your test fixture class (typically just below it), define those
     member variables, optionally giving them initial values.
-1.  In the same test fixture class, define a `static void SetUpTestSuite()`
+3.  In the same test fixture class, define a `static void SetUpTestSuite()`
     function (remember not to spell it as **`SetupTestSuite`** with a small
     `u`!) to set up the shared resources and a `static void TearDownTestSuite()`
     function to tear them down.
@@ -1334,14 +1342,19 @@ for generating test parameters. They return what we call (surprise!) *parameter
 generators*. Here is a summary of them, which are all in the `testing`
 namespace:
 
-| Parameter Generator                                                                       | Behavior                                                                                                          |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `Range(begin, end [, step])`                                                              | Yields values `{begin, begin+step, begin+step+step, ...}`. The values do not include `end`. `step` defaults to 1. |
-| `Values(v1, v2, ..., vN)`                                                                 | Yields values `{v1, v2, ..., vN}`.                                                                                |
-| `ValuesIn(container)` and                                                                 | Yields values from a C-style array, an                                                                            |
-| : `ValuesIn(begin,end)`        : STL-style container, or an iterator range `[begin, end)` |
-| `Bool()`                                                                                  | Yields sequence `{false, true}`.                                                                                  |
-| `Combine(g1, g2, ..., gN)`                                                                | Yields all combinations (Cartesian product) as std\:\:tuples of the values generated by the `N` generators.       |
+| Parameter Generator          | Behavior                                    |
+| ---------------------------- | ------------------------------------------- |
+| `Range(begin, end [, step])` | Yields values `{begin, begin+step,          |
+:                              : begin+step+step, ...}`. The values do not   :
+:                              : include `end`. `step` defaults to 1.        :
+| `Values(v1, v2, ..., vN)`    | Yields values `{v1, v2, ..., vN}`.          |
+| `ValuesIn(container)` and    | Yields values from a C-style array, an      |
+: `ValuesIn(begin,end)`        : STL-style container, or an iterator range   :
+:                              : `[begin, end)`.                             :
+| `Bool()`                     | Yields sequence `{false, true}`.            |
+| `Combine(g1, g2, ..., gN)`   | Yields all combinations (Cartesian product) |
+:                              : as std\:\:tuples of the values generated by :
+:                              : the `N` generators.                         :
 
 For more details, see the comments at the definitions of these functions.
 
@@ -1416,7 +1429,7 @@ To define abstract tests, you should organize your code like this:
 1.  Put the definition of the parameterized test fixture class (e.g. `FooTest`)
     in a header file, say `foo_param_test.h`. Think of this as *declaring* your
     abstract tests.
-1.  Put the `TEST_P` definitions in `foo_param_test.cc`, which includes
+2.  Put the `TEST_P` definitions in `foo_param_test.cc`, which includes
     `foo_param_test.h`. Think of this as *implementing* your abstract tests.
 
 Once they are defined, you can instantiate them by including `foo_param_test.h`,
@@ -1779,10 +1792,10 @@ For technical reasons, there are some caveats:
 
 1.  You cannot stream a failure message to either macro.
 
-1.  `statement` in `EXPECT_FATAL_FAILURE{_ON_ALL_THREADS}()` cannot reference
+2.  `statement` in `EXPECT_FATAL_FAILURE{_ON_ALL_THREADS}()` cannot reference
     local non-static variables or non-static members of `this` object.
 
-1.  `statement` in `EXPECT_FATAL_FAILURE{_ON_ALL_THREADS}()` cannot return a
+3.  `statement` in `EXPECT_FATAL_FAILURE{_ON_ALL_THREADS}()` cannot return a
     value.
 
 ## Registering tests programmatically
@@ -2010,7 +2023,7 @@ when processing an event. There are some restrictions:
 
 1.  You cannot generate any failure in `OnTestPartResult()` (otherwise it will
     cause `OnTestPartResult()` to be called recursively).
-1.  A listener that handles `OnTestPartResult()` is not allowed to generate any
+2.  A listener that handles `OnTestPartResult()` is not allowed to generate any
     failure.
 
 When you add listeners to the listener list, you should put listeners that
