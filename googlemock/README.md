@@ -28,9 +28,7 @@ gMock:
 -   does not use exceptions, and
 -   is easy to learn and use.
 
-
 Details and examples can be found here:
-
 
 *   [gMock for Dummies](docs/for_dummies.md)
 *   [Legacy gMock FAQ](docs/gmock_faq.md)
