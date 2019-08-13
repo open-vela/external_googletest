@@ -280,7 +280,7 @@ class SafeMatcherCastImpl {
     // Enforce that we are not converting a non-reference type T to a reference
     // type U.
     GTEST_COMPILE_ASSERT_(
-        std::is_reference<T>::value || !std::is_reference<U>::value,
+        internal::is_reference<T>::value || !internal::is_reference<U>::value,
         cannot_convert_non_reference_arg_to_reference);
     // In case both T and U are arithmetic types, enforce that the
     // conversion is not lossy.
@@ -1610,9 +1610,8 @@ class PointeeMatcher {
   template <typename Pointer>
   class Impl : public MatcherInterface<Pointer> {
    public:
-    typedef
-        typename PointeeOf<typename std::remove_const<GTEST_REMOVE_REFERENCE_(
-            Pointer)>::type>::type Pointee;
+    typedef typename PointeeOf<GTEST_REMOVE_CONST_(  // NOLINT
+        GTEST_REMOVE_REFERENCE_(Pointer))>::type Pointee;
 
     explicit Impl(const InnerMatcher& matcher)
         : matcher_(MatcherCast<const Pointee&>(matcher)) {}
@@ -1750,8 +1749,8 @@ class FieldMatcher {
     // FIXME: The dispatch on std::is_pointer was introduced as a workaround for
     // a compiler bug, and can now be removed.
     return MatchAndExplainImpl(
-        typename std::is_pointer<typename std::remove_const<T>::type>::type(),
-        value, listener);
+        typename std::is_pointer<GTEST_REMOVE_CONST_(T)>::type(), value,
+        listener);
   }
 
  private:
@@ -1817,8 +1816,8 @@ class PropertyMatcher {
   template <typename T>
   bool MatchAndExplain(const T&value, MatchResultListener* listener) const {
     return MatchAndExplainImpl(
-        typename std::is_pointer<typename std::remove_const<T>::type>::type(),
-        value, listener);
+        typename std::is_pointer<GTEST_REMOVE_CONST_(T)>::type(), value,
+        listener);
   }
 
  private:
@@ -2094,8 +2093,9 @@ class ContainerEqMatcher {
   template <typename LhsContainer>
   bool MatchAndExplain(const LhsContainer& lhs,
                        MatchResultListener* listener) const {
-    typedef internal::StlContainerView<
-        typename std::remove_const<LhsContainer>::type>
+    // GTEST_REMOVE_CONST_() is needed to work around an MSVC 8.0 bug
+    // that causes LhsContainer to be a const type sometimes.
+    typedef internal::StlContainerView<GTEST_REMOVE_CONST_(LhsContainer)>
         LhsView;
     typedef typename LhsView::type LhsStlContainer;
     StlContainerReference lhs_stl_container = LhsView::ConstReference(lhs);
@@ -4034,12 +4034,12 @@ BeginEndDistanceIs(const DistanceMatcher& distance_matcher) {
 // values that are included in one container but not the other. (Duplicate
 // values and order differences are not explained.)
 template <typename Container>
-inline PolymorphicMatcher<internal::ContainerEqMatcher<
-    typename std::remove_const<Container>::type>>
-ContainerEq(const Container& rhs) {
+inline PolymorphicMatcher<internal::ContainerEqMatcher<  // NOLINT
+                            GTEST_REMOVE_CONST_(Container)> >
+    ContainerEq(const Container& rhs) {
   // This following line is for working around a bug in MSVC 8.0,
   // which causes Container to be a const type sometimes.
-  typedef typename std::remove_const<Container>::type RawContainer;
+  typedef GTEST_REMOVE_CONST_(Container) RawContainer;
   return MakePolymorphicMatcher(
       internal::ContainerEqMatcher<RawContainer>(rhs));
 }
@@ -4072,12 +4072,12 @@ WhenSorted(const ContainerMatcher& container_matcher) {
 // LHS container and the RHS container respectively.
 template <typename TupleMatcher, typename Container>
 inline internal::PointwiseMatcher<TupleMatcher,
-                                  typename std::remove_const<Container>::type>
+                                  GTEST_REMOVE_CONST_(Container)>
 Pointwise(const TupleMatcher& tuple_matcher, const Container& rhs) {
   // This following line is for working around a bug in MSVC 8.0,
   // which causes Container to be a const type sometimes (e.g. when
   // rhs is a const int[])..
-  typedef typename std::remove_const<Container>::type RawContainer;
+  typedef GTEST_REMOVE_CONST_(Container) RawContainer;
   return internal::PointwiseMatcher<TupleMatcher, RawContainer>(
       tuple_matcher, rhs);
 }
@@ -4105,15 +4105,14 @@ inline internal::PointwiseMatcher<TupleMatcher, std::vector<T> > Pointwise(
 template <typename Tuple2Matcher, typename RhsContainer>
 inline internal::UnorderedElementsAreArrayMatcher<
     typename internal::BoundSecondMatcher<
-        Tuple2Matcher,
-        typename internal::StlContainerView<
-            typename std::remove_const<RhsContainer>::type>::type::value_type>>
+        Tuple2Matcher, typename internal::StlContainerView<GTEST_REMOVE_CONST_(
+                           RhsContainer)>::type::value_type> >
 UnorderedPointwise(const Tuple2Matcher& tuple2_matcher,
                    const RhsContainer& rhs_container) {
   // This following line is for working around a bug in MSVC 8.0,
   // which causes RhsContainer to be a const type sometimes (e.g. when
   // rhs_container is a const int[]).
-  typedef typename std::remove_const<RhsContainer>::type RawRhsContainer;
+  typedef GTEST_REMOVE_CONST_(RhsContainer) RawRhsContainer;
 
   // RhsView allows the same code to handle RhsContainer being a
   // STL-style container and it being a native C-style array.

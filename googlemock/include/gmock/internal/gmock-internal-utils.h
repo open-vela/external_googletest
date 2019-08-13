@@ -355,9 +355,9 @@ GTEST_API_ WithoutMatchers GetWithoutMatchers();
 
 // Type traits.
 
-// type_equals<T1, T2>::value is non-zero if T1 and T2 are the same type.
-template <typename T1, typename T2> struct type_equals : public false_type {};
-template <typename T> struct type_equals<T, T> : public true_type {};
+// is_reference<T>::value is non-zero if T is a reference type.
+template <typename T> struct is_reference : public false_type {};
+template <typename T> struct is_reference<T&> : public true_type {};
 
 // remove_reference<T>::type removes the reference from type T, if any.
 template <typename T> struct remove_reference { typedef T type; };  // NOLINT
@@ -425,8 +425,8 @@ class StlContainerView {
 
   static const_reference ConstReference(const RawContainer& container) {
     // Ensures that RawContainer is not a const type.
-    testing::StaticAssertTypeEq<
-        RawContainer, typename std::remove_const<RawContainer>::type>();
+    testing::StaticAssertTypeEq<RawContainer,
+        GTEST_REMOVE_CONST_(RawContainer)>();
     return container;
   }
   static type Copy(const RawContainer& container) { return container; }
@@ -436,7 +436,7 @@ class StlContainerView {
 template <typename Element, size_t N>
 class StlContainerView<Element[N]> {
  public:
-  typedef typename std::remove_const<Element>::type RawElement;
+  typedef GTEST_REMOVE_CONST_(Element) RawElement;
   typedef internal::NativeArray<RawElement> type;
   // NativeArray<T> can represent a native array either by value or by
   // reference (selected by a constructor argument), so 'const type'
@@ -460,8 +460,8 @@ class StlContainerView<Element[N]> {
 template <typename ElementPointer, typename Size>
 class StlContainerView< ::std::tuple<ElementPointer, Size> > {
  public:
-  typedef typename std::remove_const<
-      typename internal::PointeeOf<ElementPointer>::type>::type RawElement;
+  typedef GTEST_REMOVE_CONST_(
+      typename internal::PointeeOf<ElementPointer>::type) RawElement;
   typedef internal::NativeArray<RawElement> type;
   typedef const type const_reference;
 
