@@ -174,7 +174,6 @@ TEST_P(DerivedTest, DoesBlah) {
 
 #endif  // 0
 
-#include <iterator>
 #include <utility>
 
 #include "gtest/internal/gtest-internal.h"
@@ -293,9 +292,10 @@ internal::ParamGenerator<T> Range(T start, T end) {
 //
 template <typename ForwardIterator>
 internal::ParamGenerator<
-    typename std::iterator_traits<ForwardIterator>::value_type>
+  typename ::testing::internal::IteratorTraits<ForwardIterator>::value_type>
 ValuesIn(ForwardIterator begin, ForwardIterator end) {
-  typedef typename std::iterator_traits<ForwardIterator>::value_type ParamType;
+  typedef typename ::testing::internal::IteratorTraits<ForwardIterator>
+      ::value_type ParamType;
   return internal::ParamGenerator<ParamType>(
       new internal::ValuesInIteratorRangeGenerator<ParamType>(begin, end));
 }

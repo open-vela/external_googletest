@@ -869,9 +869,30 @@ struct RemoveReference<T&> { typedef T type; };  // NOLINT
 #define GTEST_REMOVE_REFERENCE_(T) \
     typename ::testing::internal::RemoveReference<T>::type
 
+// Removes const from a type if it is a const type, otherwise leaves
+// it unchanged.  This is the same as tr1::remove_const, which is not
+// widely available yet.
+template <typename T>
+struct RemoveConst { typedef T type; };  // NOLINT
+template <typename T>
+struct RemoveConst<const T> { typedef T type; };  // NOLINT
+
+// MSVC 8.0, Sun C++, and IBM XL C++ have a bug which causes the above
+// definition to fail to remove the const in 'const int[3]' and 'const
+// char[3][4]'.  The following specialization works around the bug.
+template <typename T, size_t N>
+struct RemoveConst<const T[N]> {
+  typedef typename RemoveConst<T>::type type[N];
+};
+
+// A handy wrapper around RemoveConst that works when the argument
+// T depends on template parameters.
+#define GTEST_REMOVE_CONST_(T) \
+    typename ::testing::internal::RemoveConst<T>::type
+
 // Turns const U&, U&, const U, and U all into U.
 #define GTEST_REMOVE_REFERENCE_AND_CONST_(T) \
-  typename std::remove_const<GTEST_REMOVE_REFERENCE_(T)>::type
+    GTEST_REMOVE_CONST_(GTEST_REMOVE_REFERENCE_(T))
 
 // IsAProtocolMessage<T>::value is a compile-time bool constant that's
 // true if T is type proto2::Message or a subclass of it.
@@ -956,9 +977,9 @@ template <typename C>
 struct IsRecursiveContainerImpl<C, true> {
   using value_type = decltype(*std::declval<typename C::const_iterator>());
   using type =
-      is_same<typename std::remove_const<
-                  typename std::remove_reference<value_type>::type>::type,
-              C>;
+      std::is_same<typename std::remove_const<
+                       typename std::remove_reference<value_type>::type>::type,
+                   C>;
 };
 
 // IsRecursiveContainer<Type> is a unary compile-time predicate that
@@ -969,6 +990,13 @@ struct IsRecursiveContainerImpl<C, true> {
 // boost::filesystem::path.
 template <typename C>
 struct IsRecursiveContainer : public IsRecursiveContainerImpl<C>::type {};
+
+// EnableIf<condition>::type is void when 'Cond' is true, and
+// undefined when 'Cond' is false.  To use SFINAE to make a function
+// overload only apply when a particular expression is true, add
+// "typename EnableIf<expression>::type* = 0" as the last parameter.
+template<bool> struct EnableIf;
+template<> struct EnableIf<true> { typedef void type; };  // NOLINT
 
 // Utilities for native arrays.
 
