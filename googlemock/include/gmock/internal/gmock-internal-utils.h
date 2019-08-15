@@ -359,6 +359,10 @@ GTEST_API_ WithoutMatchers GetWithoutMatchers();
 template <typename T> struct is_reference : public false_type {};
 template <typename T> struct is_reference<T&> : public true_type {};
 
+// type_equals<T1, T2>::value is non-zero if T1 and T2 are the same type.
+template <typename T1, typename T2> struct type_equals : public false_type {};
+template <typename T> struct type_equals<T, T> : public true_type {};
+
 // remove_reference<T>::type removes the reference from type T, if any.
 template <typename T> struct remove_reference { typedef T type; };  // NOLINT
 template <typename T> struct remove_reference<T&> { typedef T type; }; // NOLINT
@@ -502,8 +506,19 @@ struct BooleanConstant {};
 // reduce code size.
 GTEST_API_ void IllegalDoDefault(const char* file, int line);
 
+// Helper types for Apply() below.
+template <size_t... Is> struct int_pack { typedef int_pack type; };
+
+template <class Pack, size_t I> struct append;
+template <size_t... Is, size_t I>
+struct append<int_pack<Is...>, I> : int_pack<Is..., I> {};
+
+template <size_t C>
+struct make_int_pack : append<typename make_int_pack<C - 1>::type, C - 1> {};
+template <> struct make_int_pack<0> : int_pack<> {};
+
 template <typename F, typename Tuple, size_t... Idx>
-auto ApplyImpl(F&& f, Tuple&& args, IndexSequence<Idx...>) -> decltype(
+auto ApplyImpl(F&& f, Tuple&& args, int_pack<Idx...>) -> decltype(
     std::forward<F>(f)(std::get<Idx>(std::forward<Tuple>(args))...)) {
   return std::forward<F>(f)(std::get<Idx>(std::forward<Tuple>(args))...);
 }
@@ -512,9 +527,9 @@ auto ApplyImpl(F&& f, Tuple&& args, IndexSequence<Idx...>) -> decltype(
 template <typename F, typename Tuple>
 auto Apply(F&& f, Tuple&& args)
     -> decltype(ApplyImpl(std::forward<F>(f), std::forward<Tuple>(args),
-                          MakeIndexSequence<std::tuple_size<Tuple>::value>())) {
+                          make_int_pack<std::tuple_size<Tuple>::value>())) {
   return ApplyImpl(std::forward<F>(f), std::forward<Tuple>(args),
-                   MakeIndexSequence<std::tuple_size<Tuple>::value>());
+                   make_int_pack<std::tuple_size<Tuple>::value>());
 }
 
 // Template struct Function<F>, where F must be a function type, contains
