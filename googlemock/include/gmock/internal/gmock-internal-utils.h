@@ -157,11 +157,11 @@ GMOCK_DECLARE_KIND_(long double, kFloatingPoint);
   static_cast< ::testing::internal::TypeKind>( \
       ::testing::internal::KindOf<type>::value)
 
-// Evaluates to true if and only if integer type T is signed.
+// Evaluates to true if integer type T is signed.
 #define GMOCK_IS_SIGNED_(T) (static_cast<T>(-1) < 0)
 
 // LosslessArithmeticConvertibleImpl<kFromKind, From, kToKind, To>::value
-// is true if and only if arithmetic type From can be losslessly converted to
+// is true if arithmetic type From can be losslessly converted to
 // arithmetic type To.
 //
 // It's the user's responsibility to ensure that both From and To are
@@ -192,8 +192,8 @@ template <typename From>
 struct LosslessArithmeticConvertibleImpl<kInteger, From, kBool, bool>
     : public false_type {};  // NOLINT
 
-// Converting an integer to another non-bool integer is lossless
-// if and only if the target type's range encloses the source type's range.
+// Converting an integer to another non-bool integer is lossless if
+// the target type's range encloses the source type's range.
 template <typename From, typename To>
 struct LosslessArithmeticConvertibleImpl<kInteger, From, kInteger, To>
     : public bool_constant<
@@ -224,14 +224,14 @@ struct LosslessArithmeticConvertibleImpl<kFloatingPoint, From, kInteger, To>
     : public false_type {};  // NOLINT
 
 // Converting a floating-point to another floating-point is lossless
-// if and only if the target type is at least as big as the source type.
+// if the target type is at least as big as the source type.
 template <typename From, typename To>
 struct LosslessArithmeticConvertibleImpl<
   kFloatingPoint, From, kFloatingPoint, To>
     : public bool_constant<sizeof(From) <= sizeof(To)> {};  // NOLINT
 
-// LosslessArithmeticConvertible<From, To>::value is true if and only if
-// arithmetic type From can be losslessly converted to arithmetic type To.
+// LosslessArithmeticConvertible<From, To>::value is true if arithmetic
+// type From can be losslessly converted to arithmetic type To.
 //
 // It's the user's responsibility to ensure that both From and To are
 // raw (i.e. has no CV modifier, is not a pointer, and is not a
@@ -305,11 +305,11 @@ const char kWarningVerbosity[] = "warning";
 // No logs are printed.
 const char kErrorVerbosity[] = "error";
 
-// Returns true if and only if a log with the given severity is visible
-// according to the --gmock_verbose flag.
+// Returns true if a log with the given severity is visible according
+// to the --gmock_verbose flag.
 GTEST_API_ bool LogIsVisible(LogSeverity severity);
 
-// Prints the given message to stdout if and only if 'severity' >= the level
+// Prints the given message to stdout if 'severity' >= the level
 // specified by the --gmock_verbose flag.  If stack_frames_to_skip >=
 // 0, also prints the stack trace excluding the top
 // stack_frames_to_skip frames.  In opt mode, any positive
@@ -402,8 +402,8 @@ class StlContainerView {
 
   static const_reference ConstReference(const RawContainer& container) {
     // Ensures that RawContainer is not a const type.
-    testing::StaticAssertTypeEq<RawContainer,
-        GTEST_REMOVE_CONST_(RawContainer)>();
+    testing::StaticAssertTypeEq<
+        RawContainer, typename std::remove_const<RawContainer>::type>();
     return container;
   }
   static type Copy(const RawContainer& container) { return container; }
@@ -413,7 +413,7 @@ class StlContainerView {
 template <typename Element, size_t N>
 class StlContainerView<Element[N]> {
  public:
-  typedef GTEST_REMOVE_CONST_(Element) RawElement;
+  typedef typename std::remove_const<Element>::type RawElement;
   typedef internal::NativeArray<RawElement> type;
   // NativeArray<T> can represent a native array either by value or by
   // reference (selected by a constructor argument), so 'const type'
@@ -437,8 +437,8 @@ class StlContainerView<Element[N]> {
 template <typename ElementPointer, typename Size>
 class StlContainerView< ::std::tuple<ElementPointer, Size> > {
  public:
-  typedef GTEST_REMOVE_CONST_(
-      typename internal::PointeeOf<ElementPointer>::type) RawElement;
+  typedef typename std::remove_const<
+      typename internal::PointeeOf<ElementPointer>::type>::type RawElement;
   typedef internal::NativeArray<RawElement> type;
   typedef const type const_reference;
 

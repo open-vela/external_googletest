@@ -731,12 +731,12 @@ you can do it earlier:
 using ::testing::Mock;
 ...
 // Verifies and removes the expectations on mock_obj;
-// returns true if and only if successful.
+// returns true if successful.
 Mock::VerifyAndClearExpectations(&mock_obj);
 ...
 // Verifies and removes the expectations on mock_obj;
 // also removes the default actions set by ON_CALL();
-// returns true if and only if successful.
+// returns true if successful.
 Mock::VerifyAndClear(&mock_obj);
 ```
 
