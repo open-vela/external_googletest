@@ -219,6 +219,7 @@ using ::testing::PrintToString;
 using ::testing::internal::FormatForComparisonFailureMessage;
 using ::testing::internal::ImplicitCast_;
 using ::testing::internal::NativeArray;
+using ::testing::internal::RE;
 using ::testing::internal::RelationToSourceReference;
 using ::testing::internal::Strings;
 using ::testing::internal::UniversalPrint;
