@@ -34,7 +34,6 @@
 // EXPECT_CALL).
 
 #include "gmock/gmock-spec-builders.h"
-#include "gtest/internal/gtest-port.h"
 
 #include <stdlib.h>
 #include <iostream>  // NOLINT
@@ -71,7 +70,7 @@ GTEST_API_ void LogWithLocation(testing::internal::LogSeverity severity,
                                 const char* file, int line,
                                 const std::string& message) {
   ::std::ostringstream s;
-  s << internal::FormatFileLocation(file, line) << " " << message << ::std::endl;
+  s << file << ":" << line << ": " << message << ::std::endl;
   Log(severity, s.str(), 0);
 }
 
