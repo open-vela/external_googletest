@@ -43,6 +43,7 @@
 #include <map>
 #include <string>
 #include <type_traits>
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -669,7 +670,7 @@ struct MockMethodNoexceptSpecifier {
   MOCK_METHOD(void, func6, (), (noexcept(noexcept(DoesntThrow())), const));
   MOCK_METHOD(void, func7, (), (const, noexcept(noexcept(DoesntThrow()))));
   // Put commas in the noexcept expression
-  MOCK_METHOD(void, func8, (), (noexcept(noexcept(hasTwoParams(1,2))), const));
+  MOCK_METHOD(void, func8, (), (noexcept(noexcept(hasTwoParams(1, 2))), const));
 };
 
 TEST(MockMethodMockFunctionTest, NoexceptSpecifierPreserved) {
@@ -680,7 +681,8 @@ TEST(MockMethodMockFunctionTest, NoexceptSpecifierPreserved) {
   EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func5()));
   EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func6()));
   EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func7()));
-  EXPECT_EQ(noexcept(std::declval<MockMethodNoexceptSpecifier>().func8()), noexcept(hasTwoParams(1,2)));
+  EXPECT_EQ(noexcept(std::declval<MockMethodNoexceptSpecifier>().func8()),
+            noexcept(hasTwoParams(1, 2)));
 }
 
 }  // namespace gmock_function_mocker_test
