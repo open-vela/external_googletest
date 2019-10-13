@@ -449,7 +449,7 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 // no support for it at least as recent as Froyo (2.2).
 #define GTEST_HAS_STD_WSTRING                                         \
   (!(GTEST_OS_LINUX_ANDROID || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS || \
-     GTEST_OS_HAIKU || GTEST_OS_ESP8266))
+     GTEST_OS_HAIKU || GTEST_OS_ESP32 || GTEST_OS_ESP8266))
 
 #endif  // GTEST_HAS_STD_WSTRING
 
@@ -1590,7 +1590,7 @@ class ThreadLocal : public ThreadLocalBase {
   class DefaultValueHolderFactory : public ValueHolderFactory {
    public:
     DefaultValueHolderFactory() {}
-    ValueHolder* MakeNewHolder() const override { return new ValueHolder(); }
+    virtual ValueHolder* MakeNewHolder() const { return new ValueHolder(); }
 
    private:
     GTEST_DISALLOW_COPY_AND_ASSIGN_(DefaultValueHolderFactory);
@@ -1599,7 +1599,7 @@ class ThreadLocal : public ThreadLocalBase {
   class InstanceValueHolderFactory : public ValueHolderFactory {
    public:
     explicit InstanceValueHolderFactory(const T& value) : value_(value) {}
-    ValueHolder* MakeNewHolder() const override {
+    virtual ValueHolder* MakeNewHolder() const {
       return new ValueHolder(value_);
     }
 
