@@ -6170,7 +6170,7 @@ TEST_F(ParseFlagsTest, WideStrings) {
 #if GTEST_USE_OWN_FLAGFILE_FLAG_
 class FlagfileTest : public ParseFlagsTest {
  public:
-  void SetUp() override {
+  virtual void SetUp() {
     ParseFlagsTest::SetUp();
 
     testdata_path_.Set(internal::FilePath(
@@ -6180,7 +6180,7 @@ class FlagfileTest : public ParseFlagsTest {
     EXPECT_TRUE(testdata_path_.CreateFolder());
   }
 
-  void TearDown() override {
+  virtual void TearDown() {
     testing::internal::posix::RmDir(testdata_path_.c_str());
     ParseFlagsTest::TearDown();
   }
