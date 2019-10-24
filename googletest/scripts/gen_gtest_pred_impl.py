@@ -111,8 +111,6 @@ def HeaderPreamble(n):
 // '%(command)s'.  DO NOT EDIT BY HAND!
 //
 // Implements a family of generic predicate assertion macros.
-// GOOGLETEST_CM0001 DO NOT DELETE
-
 
 #ifndef GTEST_INCLUDE_GTEST_GTEST_PRED_IMPL_H_
 #define GTEST_INCLUDE_GTEST_GTEST_PRED_IMPL_H_
@@ -248,10 +246,8 @@ AssertionResult AssertPred%(n)sHelper(const char* pred_text""" % DEFS
 
   impl += ' << ") evaluates to false, where"'
 
-  impl += Iter(
-      n, """
-      << "\\n" << e%s << " evaluates to " << ::testing::PrintToString(v%s)"""
-  )
+  impl += Iter(n, """
+                            << "\\n" << e%s << " evaluates to " << v%s""")
 
   impl += """;
 }
@@ -514,7 +510,7 @@ struct PredFormatFunctor%(n)s {
 
 class Predicate%(n)sTest : public testing::Test {
  protected:
-  void SetUp() override {
+  virtual void SetUp() {
     expected_to_finish_ = true;
     finished_ = false;""" % DEFS
 
@@ -524,7 +520,7 @@ class Predicate%(n)sTest : public testing::Test {
 """
 
   tests += """
-  void TearDown() override {
+  virtual void TearDown() {
     // Verifies that each of the predicate's arguments was evaluated
     // exactly once."""
 
@@ -592,7 +588,7 @@ typedef Predicate%(n)sTest ASSERT_PRED%(n)sTest;
 
     if use_assert:
       assrt = 'ASSERT'  # 'assert' is reserved, so we cannot use
-      # that identifier here.
+                        # that identifier here.
     else:
       assrt = 'EXPECT'
 

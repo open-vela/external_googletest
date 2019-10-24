@@ -17,7 +17,10 @@
 
 """Generate an Abstract Syntax Tree (AST) for C++."""
 
-# FIXME:
+__author__ = 'nnorwitz@google.com (Neal Norwitz)'
+
+
+# TODO:
 #  * Tokens should never be exported, need to convert to Nodes
 #    (return types, parameters, etc.)
 #  * Handle static class data for templatized classes
@@ -335,7 +338,7 @@ class Class(_GenericDeclaration):
         # TODO(nnorwitz): handle namespaces, etc.
         if self.bases:
             for token_list in self.bases:
-                # TODO(nnorwitz): bases are tokens, do name comparision.
+                # TODO(nnorwitz): bases are tokens, do name comparison.
                 for token in token_list:
                     if token.name == node.name:
                         return True
@@ -378,7 +381,7 @@ class Function(_GenericDeclaration):
 
     def Requires(self, node):
         if self.parameters:
-            # TODO(nnorwitz): parameters are tokens, do name comparision.
+            # TODO(nnorwitz): parameters are tokens, do name comparison.
             for p in self.parameters:
                 if p.name == node.name:
                     return True
@@ -736,14 +739,6 @@ class AstBuilder(object):
         if token.token_type == tokenize.NAME:
             if (keywords.IsKeyword(token.name) and
                 not keywords.IsBuiltinType(token.name)):
-                if token.name == 'enum':
-                    # Pop the next token and only put it back if it's not
-                    # 'class'.  This allows us to support the two-token
-                    # 'enum class' keyword as if it were simply 'enum'.
-                    next = self._GetNextToken()
-                    if next.name != 'class':
-                        self._AddBackToken(next)
-
                 method = getattr(self, 'handle_' + token.name)
                 return method()
             elif token.name == self.in_class_name_only:
@@ -759,8 +754,7 @@ class AstBuilder(object):
             # Handle data or function declaration/definition.
             syntax = tokenize.SYNTAX
             temp_tokens, last_token = \
-                self._GetVarTokensUpToIgnoringTemplates(syntax,
-                                                        '(', ';', '{', '[')
+                self._GetVarTokensUpTo(syntax, '(', ';', '{', '[')
             temp_tokens.insert(0, token)
             if last_token.name == '(':
                 # If there is an assignment before the paren,
@@ -864,25 +858,7 @@ class AstBuilder(object):
             last_token = self._GetNextToken()
         return tokens, last_token
 
-    # Same as _GetVarTokensUpTo, but skips over '<...>' which could contain an
-    # expected token.
-    def _GetVarTokensUpToIgnoringTemplates(self, expected_token_type,
-                                           *expected_tokens):
-        last_token = self._GetNextToken()
-        tokens = []
-        nesting = 0
-        while (nesting > 0 or
-               last_token.token_type != expected_token_type or
-               last_token.name not in expected_tokens):
-            tokens.append(last_token)
-            last_token = self._GetNextToken()
-            if last_token.name == '<':
-                nesting += 1
-            elif last_token.name == '>':
-                nesting -= 1
-        return tokens, last_token
-
-    # TODO(nnorwitz): remove _IgnoreUpTo() it shouldn't be necesary.
+    # TODO(nnorwitz): remove _IgnoreUpTo() it shouldn't be necessary.
     def _IgnoreUpTo(self, token_type, token):
         unused_tokens = self._GetTokensUpTo(token_type, token)
 
@@ -1288,6 +1264,9 @@ class AstBuilder(object):
         return self._GetNestedType(Union)
 
     def handle_enum(self):
+        token = self._GetNextToken()
+        if not (token.token_type == tokenize.NAME and token.name == 'class'):
+            self._AddBackToken(token)
         return self._GetNestedType(Enum)
 
     def handle_auto(self):
@@ -1319,8 +1298,7 @@ class AstBuilder(object):
         if token2.token_type == tokenize.SYNTAX and token2.name == '~':
             return self.GetMethod(FUNCTION_VIRTUAL + FUNCTION_DTOR, None)
         assert token.token_type == tokenize.NAME or token.name == '::', token
-        return_type_and_name, _ = self._GetVarTokensUpToIgnoringTemplates(
-            tokenize.SYNTAX, '(')  # )
+        return_type_and_name = self._GetTokensUpTo(tokenize.SYNTAX, '(')  # )
         return_type_and_name.insert(0, token)
         if token2 is not token:
             return_type_and_name.insert(1, token2)
