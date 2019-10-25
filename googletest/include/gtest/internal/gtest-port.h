@@ -248,7 +248,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <memory>
 #include <type_traits>
 
 #ifndef _WIN32_WCE
@@ -261,16 +260,14 @@
 # include <TargetConditionals.h>
 #endif
 
-#include <algorithm>  // NOLINT
-#include <iostream>   // NOLINT
-#include <sstream>    // NOLINT
-#include <string>     // NOLINT
+#include <iostream>  // NOLINT
+#include <memory>
+#include <string>  // NOLINT
 #include <tuple>
-#include <utility>
 #include <vector>  // NOLINT
 
-#include "gtest/internal/gtest-port-arch.h"
 #include "gtest/internal/custom/gtest-port.h"
+#include "gtest/internal/gtest-port-arch.h"
 
 #if !defined(GTEST_DEV_EMAIL_)
 # define GTEST_DEV_EMAIL_ "googletestframework@@googlegroups.com"
@@ -449,7 +446,7 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 // no support for it at least as recent as Froyo (2.2).
 #define GTEST_HAS_STD_WSTRING                                         \
   (!(GTEST_OS_LINUX_ANDROID || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS || \
-     GTEST_OS_HAIKU))
+     GTEST_OS_HAIKU || GTEST_OS_ESP32 || GTEST_OS_ESP8266))
 
 #endif  // GTEST_HAS_STD_WSTRING
 
@@ -573,7 +570,8 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 #ifndef GTEST_HAS_STREAM_REDIRECTION
 // By default, we assume that stream redirection is supported on all
 // platforms except known mobile ones.
-# if GTEST_OS_WINDOWS_MOBILE || GTEST_OS_WINDOWS_PHONE || GTEST_OS_WINDOWS_RT
+#if GTEST_OS_WINDOWS_MOBILE || GTEST_OS_WINDOWS_PHONE || \
+    GTEST_OS_WINDOWS_RT || GTEST_OS_ESP8266
 #  define GTEST_HAS_STREAM_REDIRECTION 0
 # else
 #  define GTEST_HAS_STREAM_REDIRECTION 1
@@ -846,9 +844,6 @@ class Secret;
 // The second argument to the macro must be a valid C++ identifier. If the
 // expression is false, compiler will issue an error containing this identifier.
 #define GTEST_COMPILE_ASSERT_(expr, msg) static_assert(expr, #msg)
-
-// Evaluates to the number of elements in 'array'.
-#define GTEST_ARRAY_SIZE_(array) (sizeof(array) / sizeof(array[0]))
 
 // A helper for suppressing warnings on constant condition.  It just
 // returns 'condition'.
@@ -1878,9 +1873,6 @@ class GTEST_API_ ThreadLocal {
 // we cannot detect it.
 GTEST_API_ size_t GetThreadCount();
 
-template <bool B>
-using bool_constant = std::integral_constant<bool, B>;
-
 #if GTEST_OS_WINDOWS
 # define GTEST_PATH_SEP_ "\\"
 # define GTEST_HAS_ALT_PATH_SEP_ 1
@@ -1984,6 +1976,22 @@ inline bool IsDir(const StatStruct& st) {
 }
 # endif  // GTEST_OS_WINDOWS_MOBILE
 
+#elif GTEST_OS_ESP8266
+typedef struct stat StatStruct;
+
+inline int FileNo(FILE* file) { return fileno(file); }
+inline int IsATTY(int fd) { return isatty(fd); }
+inline int Stat(const char* path, StatStruct* buf) {
+  // stat function not implemented on ESP8266
+  return 0;
+}
+inline int StrCaseCmp(const char* s1, const char* s2) {
+  return strcasecmp(s1, s2);
+}
+inline char* StrDup(const char* src) { return strdup(src); }
+inline int RmDir(const char* dir) { return rmdir(dir); }
+inline bool IsDir(const StatStruct& st) { return S_ISDIR(st.st_mode); }
+
 #else
 
 typedef struct stat StatStruct;
@@ -2003,10 +2011,6 @@ inline bool IsDir(const StatStruct& st) { return S_ISDIR(st.st_mode); }
 // Functions deprecated by MSVC 8.0.
 
 GTEST_DISABLE_MSC_DEPRECATED_PUSH_()
-
-inline const char* StrNCpy(char* dest, const char* src, size_t n) {
-  return strncpy(dest, src, n);
-}
 
 // ChDir(), FReopen(), FDOpen(), Read(), Write(), Close(), and
 // StrError() aren't needed on Windows CE at this time and thus not
@@ -2036,8 +2040,9 @@ inline int Close(int fd) { return close(fd); }
 inline const char* StrError(int errnum) { return strerror(errnum); }
 #endif
 inline const char* GetEnv(const char* name) {
-#if GTEST_OS_WINDOWS_MOBILE || GTEST_OS_WINDOWS_PHONE || GTEST_OS_WINDOWS_RT
-  // We are on Windows CE, which has no environment variables.
+#if GTEST_OS_WINDOWS_MOBILE || GTEST_OS_WINDOWS_PHONE || \
+    GTEST_OS_WINDOWS_RT || GTEST_OS_ESP8266
+  // We are on an embedded platform, which has no environment variables.
   static_cast<void>(name);  // To prevent 'unused argument' warning.
   return nullptr;
 #elif defined(__BORLANDC__) || defined(__SunOS_5_8) || defined(__SunOS_5_9)
