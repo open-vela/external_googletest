@@ -916,8 +916,7 @@ struct WithArgsAction {
   // We use the conversion operator to detect the signature of the inner Action.
   template <typename R, typename... Args>
   operator Action<R(Args...)>() const {  // NOLINT
-    using TupleType = std::tuple<Args...>;
-    Action<R(typename std::tuple_element<I, TupleType>::type...)>
+    Action<R(typename std::tuple_element<I, std::tuple<Args...>>::type...)>
         converted(action);
 
     return [converted](Args... args) -> R {
