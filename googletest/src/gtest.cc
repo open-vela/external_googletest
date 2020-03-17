@@ -2268,7 +2268,7 @@ static const char* const kReservedOutputTestCaseAttributes[] = {
     "classname",   "name", "status", "time",   "type_param",
     "value_param", "file", "line",   "result", "timestamp"};
 
-template <size_t kSize>
+template <int kSize>
 std::vector<std::string> ArrayAsVector(const char* const (&array)[kSize]) {
   return std::vector<std::string>(array, array + kSize);
 }
