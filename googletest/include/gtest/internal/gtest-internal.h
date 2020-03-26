@@ -90,15 +90,7 @@
 #define GTEST_STRINGIFY_HELPER_(name, ...) #name
 #define GTEST_STRINGIFY_(...) GTEST_STRINGIFY_HELPER_(__VA_ARGS__, )
 
-namespace proto2 {
-class MessageLite;
-}
-
-namespace google {
-namespace protobuf {
-class MessageLite;
-}
-}
+namespace proto2 { class Message; }
 
 namespace testing {
 
@@ -887,15 +879,10 @@ class GTEST_API_ Random {
   typename std::remove_const<typename std::remove_reference<T>::type>::type
 
 // IsAProtocolMessage<T>::value is a compile-time bool constant that's
-// true if and only if T is type proto2::MessageLite or
-// google::protobuf::MessageLite or a subclass of one of them.
+// true if and only if T is type proto2::Message or a subclass of it.
 template <typename T>
 struct IsAProtocolMessage
-    : public std::integral_constant<
-          bool,
-          std::is_convertible<const T*, const ::proto2::MessageLite*>::value ||
-              std::is_convertible<
-                  const T*, const ::google::protobuf::MessageLite*>::value> {};
+    : public std::is_convertible<const T*, const ::proto2::Message*> {};
 
 // When the compiler sees expression IsContainerTest<C>(0), if C is an
 // STL-style container class, the first overload of IsContainerTest
