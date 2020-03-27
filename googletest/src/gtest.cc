@@ -288,6 +288,10 @@ GTEST_DEFINE_string_(
     "executable's name and, if necessary, made unique by adding "
     "digits.");
 
+GTEST_DEFINE_bool_(
+    brief, internal::BoolFromGTestEnv("brief", false),
+    "True if only test failures should be displayed in text output.");
+
 GTEST_DEFINE_bool_(print_time, internal::BoolFromGTestEnv("print_time", true),
                    "True if and only if " GTEST_NAME_
                    " should display elapsed time in text output.");
@@ -2191,9 +2195,7 @@ std::string AppendUserMessage(const std::string& gtest_msg,
   if (user_msg_string.empty()) {
     return gtest_msg;
   }
-  if (gtest_msg.empty()) {
-    return user_msg_string;
-  }
+
   return gtest_msg + "\n" + user_msg_string;
 }
 
@@ -2272,8 +2274,7 @@ static const char* const kReservedTestSuitesAttributes[] = {
 // The list of reserved attributes used in the <testsuite> element of XML
 // output.
 static const char* const kReservedTestSuiteAttributes[] = {
-    "disabled", "errors", "failures",  "name",
-    "tests",    "time",   "timestamp", "skipped"};
+    "disabled", "errors", "failures", "name", "tests", "time", "timestamp"};
 
 // The list of reserved attributes used in the <testcase> element of XML output.
 static const char* const kReservedTestCaseAttributes[] = {
@@ -3115,7 +3116,7 @@ static std::string FormatTestSuiteCount(int test_suite_count) {
 static const char * TestPartResultTypeToString(TestPartResult::Type type) {
   switch (type) {
     case TestPartResult::kSkip:
-      return "Skipped\n";
+      return "Skipped";
     case TestPartResult::kSuccess:
       return "Success";
 
@@ -3642,6 +3643,110 @@ void PrettyUnitTestResultPrinter::OnTestIterationEnd(const UnitTest& unit_test,
 
 // End PrettyUnitTestResultPrinter
 
+// This class implements the TestEventListener interface.
+//
+// Class BriefUnitTestResultPrinter is copyable.
+class BriefUnitTestResultPrinter : public TestEventListener {
+ public:
+  BriefUnitTestResultPrinter() {}
+  static void PrintTestName(const char* test_suite, const char* test) {
+    printf("%s.%s", test_suite, test);
+  }
+
+  // The following methods override what's in the TestEventListener class.
+  void OnTestProgramStart(const UnitTest& /*unit_test*/) override {}
+  void OnTestIterationStart(const UnitTest& /*unit_test*/, int /*iteration*/) override {
+  }
+  void OnEnvironmentsSetUpStart(const UnitTest& /*unit_test*/) override {}
+  void OnEnvironmentsSetUpEnd(const UnitTest& /*unit_test*/) override {}
+#ifndef GTEST_REMOVE_LEGACY_TEST_CASEAPI_
+  void OnTestCaseStart(const TestCase& /*test_case*/) override {}
+#else
+  void OnTestSuiteStart(const TestSuite& /*test_suite*/) override {}
+#endif  // OnTestCaseStart
+
+  void OnTestStart(const TestInfo& /*test_info*/) override {}
+
+  void OnTestPartResult(const TestPartResult& result) override;
+  void OnTestEnd(const TestInfo& test_info) override;
+#ifndef GTEST_REMOVE_LEGACY_TEST_CASEAPI_
+  void OnTestCaseEnd(const TestCase& /*test_case*/) override {}
+#else
+  void OnTestSuiteEnd(const TestSuite& /*test_suite*/) override {}
+#endif  // GTEST_REMOVE_LEGACY_TEST_CASEAPI_
+
+  void OnEnvironmentsTearDownStart(const UnitTest& /*unit_test*/) override {}
+  void OnEnvironmentsTearDownEnd(const UnitTest& /*unit_test*/) override {}
+  void OnTestIterationEnd(const UnitTest& unit_test, int iteration) override;
+  void OnTestProgramEnd(const UnitTest& /*unit_test*/) override {}
+};
+
+// Called after an assertion failure.
+void BriefUnitTestResultPrinter::OnTestPartResult(
+    const TestPartResult& result) {
+  switch (result.type()) {
+    // If the test part succeeded, we don't need to do anything.
+    case TestPartResult::kSuccess:
+      return;
+    default:
+      // Print failure message from the assertion
+      // (e.g. expected this and got that).
+      PrintTestPartResult(result);
+      fflush(stdout);
+  }
+}
+
+void BriefUnitTestResultPrinter::OnTestEnd(const TestInfo& test_info) {
+  if (test_info.result()->Failed()) {
+    ColoredPrintf(GTestColor::kRed, "[  FAILED  ] ");
+    PrintTestName(test_info.test_suite_name(), test_info.name());
+    PrintFullTestCommentIfPresent(test_info);
+
+    if (GTEST_FLAG(print_time)) {
+      printf(" (%s ms)\n",
+             internal::StreamableToString(test_info.result()->elapsed_time())
+                 .c_str());
+    } else {
+      printf("\n");
+    }
+    fflush(stdout);
+  }
+}
+
+void BriefUnitTestResultPrinter::OnTestIterationEnd(const UnitTest& unit_test,
+                                                    int /*iteration*/) {
+  ColoredPrintf(GTestColor::kGreen, "[==========] ");
+  printf("%s from %s ran.",
+         FormatTestCount(unit_test.test_to_run_count()).c_str(),
+         FormatTestSuiteCount(unit_test.test_suite_to_run_count()).c_str());
+  if (GTEST_FLAG(print_time)) {
+    printf(" (%s ms total)",
+           internal::StreamableToString(unit_test.elapsed_time()).c_str());
+  }
+  printf("\n");
+  ColoredPrintf(GTestColor::kGreen, "[  PASSED  ] ");
+  printf("%s.\n", FormatTestCount(unit_test.successful_test_count()).c_str());
+
+  const int skipped_test_count = unit_test.skipped_test_count();
+  if (skipped_test_count > 0) {
+    ColoredPrintf(GTestColor::kGreen, "[  SKIPPED ] ");
+    printf("%s.\n", FormatTestCount(skipped_test_count).c_str());
+  }
+
+  int num_disabled = unit_test.reportable_disabled_test_count();
+  if (num_disabled && !GTEST_FLAG(also_run_disabled_tests)) {
+    if (unit_test.Passed()) {
+      printf("\n");  // Add a spacer if no FAILURE banner is displayed.
+    }
+    ColoredPrintf(GTestColor::kYellow, "  YOU HAVE %d DISABLED %s\n\n",
+                  num_disabled, num_disabled == 1 ? "TEST" : "TESTS");
+  }
+  // Ensure that Google Test output is printed before, e.g., heapchecker output.
+  fflush(stdout);
+}
+
+// End BriefUnitTestResultPrinter
+
 // class TestEventRepeater
 //
 // This class forwards events to other event listeners.
@@ -4083,11 +4188,10 @@ void XmlUnitTestResultPrinter::OutputXmlTestInfo(::std::ostream* stream,
   OutputXmlAttribute(stream, kTestsuite, "classname", test_suite_name);
 
   int failures = 0;
-  int skips = 0;
   for (int i = 0; i < result.total_part_count(); ++i) {
     const TestPartResult& part = result.GetTestPartResult(i);
     if (part.failed()) {
-      if (++failures == 1 && skips == 0) {
+      if (++failures == 1) {
         *stream << ">\n";
       }
       const std::string location =
@@ -4100,26 +4204,13 @@ void XmlUnitTestResultPrinter::OutputXmlTestInfo(::std::ostream* stream,
       const std::string detail = location + "\n" + part.message();
       OutputXmlCDataSection(stream, RemoveInvalidXmlCharacters(detail).c_str());
       *stream << "</failure>\n";
-    } else if (part.skipped()) {
-      if (++skips == 1 && failures == 0) {
-        *stream << ">\n";
-      }
-      const std::string location =
-          internal::FormatCompilerIndependentFileLocation(part.file_name(),
-                                                          part.line_number());
-      const std::string summary = location + "\n" + part.summary();
-      *stream << "      <skipped message=\""
-              << EscapeXmlAttribute(summary.c_str()) << "\">";
-      const std::string detail = location + "\n" + part.message();
-      OutputXmlCDataSection(stream, RemoveInvalidXmlCharacters(detail).c_str());
-      *stream << "</skipped>\n";
     }
   }
 
-  if (failures == 0 && skips == 0 && result.test_property_count() == 0) {
+  if (failures == 0 && result.test_property_count() == 0) {
     *stream << " />\n";
   } else {
-    if (failures == 0 && skips == 0) {
+    if (failures == 0) {
       *stream << ">\n";
     }
     OutputXmlTestProperties(stream, result);
@@ -4141,11 +4232,7 @@ void XmlUnitTestResultPrinter::PrintXmlTestSuite(std::ostream* stream,
     OutputXmlAttribute(
         stream, kTestsuite, "disabled",
         StreamableToString(test_suite.reportable_disabled_test_count()));
-    OutputXmlAttribute(stream, kTestsuite, "skipped",
-                       StreamableToString(test_suite.skipped_test_count()));
-
     OutputXmlAttribute(stream, kTestsuite, "errors", "0");
-
     OutputXmlAttribute(stream, kTestsuite, "time",
                        FormatTimeInMillisAsSeconds(test_suite.elapsed_time()));
     OutputXmlAttribute(
@@ -5410,6 +5497,10 @@ void UnitTestImpl::PostFlagParsingInit() {
     // to shut down the default XML output before invoking RUN_ALL_TESTS.
     ConfigureXmlOutput();
 
+    if (GTEST_FLAG(brief)) {
+      listeners()->SetDefaultResultPrinter(new BriefUnitTestResultPrinter);
+    }
+
 #if GTEST_CAN_STREAM_RESULTS_
     // Configures listeners for streaming test results to the specified server.
     ConfigureStreamingOutput();
@@ -6188,6 +6279,8 @@ static const char kColorEncodedHelpMessage[] =
 "Test Output:\n"
 "  @G--" GTEST_FLAG_PREFIX_ "color=@Y(@Gyes@Y|@Gno@Y|@Gauto@Y)@D\n"
 "      Enable/disable colored output. The default is @Gauto@D.\n"
+"  -@G-" GTEST_FLAG_PREFIX_ "brief=1@D\n"
+"      Only print test failures.\n"
 "  -@G-" GTEST_FLAG_PREFIX_ "print_time=0@D\n"
 "      Don't print the elapsed time of each test.\n"
 "  @G--" GTEST_FLAG_PREFIX_ "output=@Y(@Gjson@Y|@Gxml@Y)[@G:@YDIRECTORY_PATH@G"
@@ -6223,7 +6316,7 @@ static const char kColorEncodedHelpMessage[] =
 "For more information, please read the " GTEST_NAME_ " documentation at\n"
 "@G" GTEST_PROJECT_URL_ "@D. If you find a bug in " GTEST_NAME_ "\n"
 "(not one in your own code or tests), please report it to\n"
-"@G<" GTEST_DEV_EMAIL_ ">@D.\n";
+    "@G<" GTEST_DEV_EMAIL_ ">@D.\n";
 
 static bool ParseGoogleTestFlag(const char* const arg) {
   return ParseBoolFlag(arg, kAlsoRunDisabledTestsFlag,
@@ -6243,6 +6336,7 @@ static bool ParseGoogleTestFlag(const char* const arg) {
                          &GTEST_FLAG(internal_run_death_test)) ||
          ParseBoolFlag(arg, kListTestsFlag, &GTEST_FLAG(list_tests)) ||
          ParseStringFlag(arg, kOutputFlag, &GTEST_FLAG(output)) ||
+         ParseBoolFlag(arg, kBriefFlag, &GTEST_FLAG(brief)) ||
          ParseBoolFlag(arg, kPrintTimeFlag, &GTEST_FLAG(print_time)) ||
          ParseBoolFlag(arg, kPrintUTF8Flag, &GTEST_FLAG(print_utf8)) ||
          ParseInt32Flag(arg, kRandomSeedFlag, &GTEST_FLAG(random_seed)) ||
