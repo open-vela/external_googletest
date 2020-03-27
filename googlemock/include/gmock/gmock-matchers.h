@@ -1313,6 +1313,9 @@ class VariadicMatcher {
     static_assert(sizeof...(Args) > 0, "Must have at least one matcher.");
   }
 
+  VariadicMatcher(const VariadicMatcher&) = default;
+  VariadicMatcher& operator=(const VariadicMatcher&) = delete;
+
   // This template type conversion operator allows an
   // VariadicMatcher<Matcher1, Matcher2...> object to match any type that
   // all of the provided matchers (Matcher1, Matcher2, ...) can match.
@@ -1337,8 +1340,6 @@ class VariadicMatcher {
       std::integral_constant<size_t, sizeof...(Args)>) const {}
 
   std::tuple<Args...> matchers_;
-
-  GTEST_DISALLOW_ASSIGN_(VariadicMatcher);
 };
 
 template <typename... Args>
