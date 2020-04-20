@@ -1120,6 +1120,8 @@ class NativeArray {
   const Element* array_;
   size_t size_;
   void (NativeArray::*clone_)(const Element*, size_t);
+
+  GTEST_DISALLOW_ASSIGN_(NativeArray);
 };
 
 // Backport of std::index_sequence.
