@@ -198,8 +198,7 @@ size_t GetThreadCount() {
   if (sysctl(mib, miblen, NULL, &size, NULL, 0)) {
     return 0;
   }
-
-  mib[5] = static_cast<int>(size / static_cast<size_t>(mib[4]));
+  mib[5] = size / mib[4];
 
   // populate array of structs
   struct kinfo_proc info[mib[5]];
@@ -208,8 +207,8 @@ size_t GetThreadCount() {
   }
 
   // exclude empty members
-  size_t nthreads = 0;
-  for (size_t i = 0; i < size / static_cast<size_t>(mib[4]); i++) {
+  int nthreads = 0;
+  for (size_t i = 0; i < size / mib[4]; i++) {
     if (info[i].p_tid != -1)
       nthreads++;
   }
