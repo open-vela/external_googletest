@@ -2061,9 +2061,9 @@ inline FILE* FOpen(const char* path, const char* mode) {
   std::wstring wide_path = converter.from_bytes(path);
   std::wstring wide_mode = converter.from_bytes(mode);
   return _wfopen(wide_path.c_str(), wide_mode.c_str());
-#else
+#else  // GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MINGW
   return fopen(path, mode);
-#endif  // GTEST_OS_WINDOWS
+#endif  // GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MINGW
 }
 #if !GTEST_OS_WINDOWS_MOBILE
 inline FILE *FReopen(const char* path, const char* mode, FILE* stream) {
