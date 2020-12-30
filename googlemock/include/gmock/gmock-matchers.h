@@ -735,31 +735,25 @@ OutIter TransformTupleValues(Func f, const Tuple& t, OutIter out) {
   return TransformTupleValuesHelper<Tuple, Func, OutIter>::Run(f, t, out);
 }
 
-// Implements A<T>().
-template <typename T>
-class AnyMatcherImpl : public MatcherInterface<const T&> {
- public:
-  bool MatchAndExplain(const T& /* x */,
-                       MatchResultListener* /* listener */) const override {
-    return true;
-  }
-  void DescribeTo(::std::ostream* os) const override { *os << "is anything"; }
-  void DescribeNegationTo(::std::ostream* os) const override {
-    // This is mostly for completeness' safe, as it's not very useful
-    // to write Not(A<bool>()).  However we cannot completely rule out
-    // such a possibility, and it doesn't hurt to be prepared.
-    *os << "never matches";
-  }
-};
-
 // Implements _, a matcher that matches any value of any
 // type.  This is a polymorphic matcher, so we need a template type
 // conversion operator to make it appearing as a Matcher<T> for any
 // type T.
 class AnythingMatcher {
  public:
+  using is_gtest_matcher = void;
+
   template <typename T>
-  operator Matcher<T>() const { return A<T>(); }
+  bool MatchAndExplain(const T& /* x */, std::ostream* /* listener */) const {
+    return true;
+  }
+  void DescribeTo(std::ostream* os) const { *os << "is anything"; }
+  void DescribeNegationTo(::std::ostream* os) const {
+    // This is mostly for completeness' sake, as it's not very useful
+    // to write Not(A<bool>()).  However we cannot completely rule out
+    // such a possibility, and it doesn't hurt to be prepared.
+    *os << "never matches";
+  }
 };
 
 // Implements the polymorphic IsNull() matcher, which matches any raw or smart
@@ -2370,6 +2364,7 @@ class ContainerEqMatcher {
     typedef internal::StlContainerView<
         typename std::remove_const<LhsContainer>::type>
         LhsView;
+    typedef typename LhsView::type LhsStlContainer;
     StlContainerReference lhs_stl_container = LhsView::ConstReference(lhs);
     if (lhs_stl_container == expected_)
       return true;
@@ -2378,7 +2373,8 @@ class ContainerEqMatcher {
     if (os != nullptr) {
       // Something is different. Check for extra values first.
       bool printed_header = false;
-      for (auto it = lhs_stl_container.begin();
+      for (typename LhsStlContainer::const_iterator it =
+               lhs_stl_container.begin();
            it != lhs_stl_container.end(); ++it) {
         if (internal::ArrayAwareFind(expected_.begin(), expected_.end(), *it) ==
             expected_.end()) {
@@ -2394,7 +2390,7 @@ class ContainerEqMatcher {
 
       // Now check for missing values.
       bool printed_header2 = false;
-      for (auto it = expected_.begin();
+      for (typename StlContainer::const_iterator it = expected_.begin();
            it != expected_.end(); ++it) {
         if (internal::ArrayAwareFind(
                 lhs_stl_container.begin(), lhs_stl_container.end(), *it) ==
@@ -2578,8 +2574,8 @@ class PointwiseMatcher {
         return false;
       }
 
-      auto left = lhs_stl_container.begin();
-      auto right = rhs_.begin();
+      typename LhsStlContainer::const_iterator left = lhs_stl_container.begin();
+      typename RhsStlContainer::const_iterator right = rhs_.begin();
       for (size_t i = 0; i != actual_size; ++i, ++left, ++right) {
         if (listener->IsInterested()) {
           StringMatchResultListener inner_listener;
@@ -2642,7 +2638,7 @@ class QuantifierMatcherImpl : public MatcherInterface<Container> {
                            MatchResultListener* listener) const {
     StlContainerReference stl_container = View::ConstReference(container);
     size_t i = 0;
-    for (auto it = stl_container.begin();
+    for (typename StlContainer::const_iterator it = stl_container.begin();
          it != stl_container.end(); ++it, ++i) {
       StringMatchResultListener inner_listener;
       const bool matches = inner_matcher_.MatchAndExplain(*it, &inner_listener);
@@ -3239,7 +3235,7 @@ class ElementsAreMatcherImpl : public MatcherInterface<Container> {
     // explanations[i] is the explanation of the element at index i.
     ::std::vector<std::string> explanations(count());
     StlContainerReference stl_container = View::ConstReference(container);
-    auto it = stl_container.begin();
+    typename StlContainer::const_iterator it = stl_container.begin();
     size_t exam_pos = 0;
     bool mismatch_found = false;  // Have we found a mismatched element yet?
 
@@ -3432,6 +3428,7 @@ class UnorderedElementsAreMatcherImpl
   typedef internal::StlContainerView<RawContainer> View;
   typedef typename View::type StlContainer;
   typedef typename View::const_reference StlContainerReference;
+  typedef typename StlContainer::const_iterator StlContainerConstIterator;
   typedef typename StlContainer::value_type Element;
 
   template <typename InputIter>
@@ -3440,7 +3437,9 @@ class UnorderedElementsAreMatcherImpl
       : UnorderedElementsAreMatcherImplBase(matcher_flags) {
     for (; first != last; ++first) {
       matchers_.push_back(MatcherCast<const Element&>(*first));
-      matcher_describers().push_back(matchers_.back().GetDescriber());
+    }
+    for (const auto& m : matchers_) {
+      matcher_describers().push_back(m.GetDescriber());
     }
   }
 
@@ -4065,12 +4064,14 @@ const internal::AnythingMatcher _ = {};
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
 inline Matcher<T> A() {
-  return Matcher<T>(new internal::AnyMatcherImpl<T>());
+  return _;
 }
 
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
-inline Matcher<T> An() { return A<T>(); }
+inline Matcher<T> An() {
+  return _;
+}
 
 template <typename T, typename M>
 Matcher<T> internal::MatcherCastImpl<T, M>::CastImpl(
@@ -4594,7 +4595,7 @@ UnorderedPointwise(const Tuple2Matcher& tuple2_matcher,
 
   // Create a matcher for each element in rhs_container.
   ::std::vector<internal::BoundSecondMatcher<Tuple2Matcher, Second> > matchers;
-  for (auto it = rhs_stl_container.begin();
+  for (typename RhsStlContainer::const_iterator it = rhs_stl_container.begin();
        it != rhs_stl_container.end(); ++it) {
     matchers.push_back(
         internal::MatcherBindSecond(tuple2_matcher, *it));
