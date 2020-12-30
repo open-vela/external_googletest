@@ -371,8 +371,8 @@ Verifies that `val1` is less than, or almost equal to, `val2`. You can replace
 
 ### Asserting Using gMock Matchers
 
-[gMock](../../googlemock) comes with
-[a library of matchers](../../googlemock/docs/cheat_sheet.md#MatcherList) for
+[gMock](gmock_index.md) comes with
+[a library of matchers](gmock_cheat_sheet.md#MatcherList) for
 validating arguments passed to mock objects. A gMock *matcher* is basically a
 predicate that knows how to describe itself. It can be used in these assertion
 macros:
@@ -396,13 +396,13 @@ using ::testing::StartsWith;
 ```
 
 Read this
-[recipe](../../googlemock/docs/cook_book.md#using-matchers-in-googletest-assertions)
+[recipe](gmock_cook_book.md#using-matchers-in-googletest-assertions)
 in the gMock Cookbook for more details.
 
 gMock has a rich set of matchers. You can do many things googletest cannot do
 alone with them. For a list of matchers gMock provides, read
-[this](../../googlemock/docs/cook_book.md##using-matchers). It's easy to write
-your [own matchers](../../googlemock/docs/cook_book.md#NewMatchers) too.
+[this](gmock_cook_book.md##using-matchers). It's easy to write
+your [own matchers](gmock_cook_book.md#NewMatchers) too.
 
 gMock is bundled with googletest, so you don't need to add any build dependency
 in order to take advantage of this. Just include `"gmock/gmock.h"`
@@ -414,7 +414,7 @@ and you're ready to go.
 you haven't.)
 
 You can use the gMock
-[string matchers](../../googlemock/docs/cheat_sheet.md#string-matchers) with
+[string matchers](gmock_cheat_sheet.md#string-matchers) with
 `EXPECT_THAT()` or `ASSERT_THAT()` to do more string comparison tricks
 (sub-string, prefix, suffix, regular expression, and etc). For example,
 
@@ -915,7 +915,7 @@ handlers registered with `pthread_atfork(3)`.
 
 Note: If you want to put a series of test assertions in a subroutine to check
 for a complex condition, consider using
-[a custom GMock matcher](../../googlemock/docs/cook_book.md#NewMatchers)
+[a custom GMock matcher](gmock_cook_book.md#NewMatchers)
 instead. This lets you provide a more readable error message in case of failure
 and avoid all of the issues described below.
 
@@ -1432,8 +1432,8 @@ given test suite, whether their definitions come before or *after* the
 
 You can see [sample7_unittest.cc] and [sample8_unittest.cc] for more examples.
 
-[sample7_unittest.cc]: ../samples/sample7_unittest.cc "Parameterized Test example"
-[sample8_unittest.cc]: ../samples/sample8_unittest.cc "Parameterized Test example with multiple parameters"
+[sample7_unittest.cc]: ../googletest/samples/sample7_unittest.cc "Parameterized Test example"
+[sample8_unittest.cc]: ../googletest/samples/sample8_unittest.cc "Parameterized Test example with multiple parameters"
 
 ### Creating Value-Parameterized Abstract Tests
 
@@ -1583,7 +1583,7 @@ TYPED_TEST(FooTest, HasPropertyA) { ... }
 
 You can see [sample6_unittest.cc] for a complete example.
 
-[sample6_unittest.cc]: ../samples/sample6_unittest.cc "Typed Test example"
+[sample6_unittest.cc]: ../googletest/samples/sample6_unittest.cc "Typed Test example"
 
 ## Type-Parameterized Tests
 
@@ -2026,7 +2026,7 @@ You can do so by adding one line:
 Now, sit back and enjoy a completely different output from your tests. For more
 details, see [sample9_unittest.cc].
 
-[sample9_unittest.cc]: ../samples/sample9_unittest.cc "Event listener example"
+[sample9_unittest.cc]: ../googletest/samples/sample9_unittest.cc "Event listener example"
 
 You may append more than one listener to the list. When an `On*Start()` or
 `OnTestPartResult()` event is fired, the listeners will receive it in the order
@@ -2053,7 +2053,7 @@ by the former.
 
 See [sample10_unittest.cc] for an example of a failure-raising listener.
 
-[sample10_unittest.cc]: ../samples/sample10_unittest.cc "Failure-raising listener example"
+[sample10_unittest.cc]: ../googletest/samples/sample10_unittest.cc "Failure-raising listener example"
 
 ## Running Test Programs: Advanced Options
 
