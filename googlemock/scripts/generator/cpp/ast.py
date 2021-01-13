@@ -36,7 +36,6 @@ except ImportError:
   # Python 2.x
   import __builtin__ as builtins
 
-import collections
 import sys
 import traceback
 
@@ -1434,7 +1433,7 @@ class AstBuilder(object):
     pass  # Not needed yet.
 
   def _GetTemplatedTypes(self):
-    result = collections.OrderedDict()
+    result = {}
     tokens = list(self._GetMatchingChar('<', '>'))
     len_tokens = len(tokens) - 1    # Ignore trailing '>'.
     i = 0

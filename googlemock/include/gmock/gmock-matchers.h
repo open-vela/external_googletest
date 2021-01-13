@@ -735,25 +735,31 @@ OutIter TransformTupleValues(Func f, const Tuple& t, OutIter out) {
   return TransformTupleValuesHelper<Tuple, Func, OutIter>::Run(f, t, out);
 }
 
+// Implements A<T>().
+template <typename T>
+class AnyMatcherImpl : public MatcherInterface<const T&> {
+ public:
+  bool MatchAndExplain(const T& /* x */,
+                       MatchResultListener* /* listener */) const override {
+    return true;
+  }
+  void DescribeTo(::std::ostream* os) const override { *os << "is anything"; }
+  void DescribeNegationTo(::std::ostream* os) const override {
+    // This is mostly for completeness' safe, as it's not very useful
+    // to write Not(A<bool>()).  However we cannot completely rule out
+    // such a possibility, and it doesn't hurt to be prepared.
+    *os << "never matches";
+  }
+};
+
 // Implements _, a matcher that matches any value of any
 // type.  This is a polymorphic matcher, so we need a template type
 // conversion operator to make it appearing as a Matcher<T> for any
 // type T.
 class AnythingMatcher {
  public:
-  using is_gtest_matcher = void;
-
   template <typename T>
-  bool MatchAndExplain(const T& /* x */, std::ostream* /* listener */) const {
-    return true;
-  }
-  void DescribeTo(std::ostream* os) const { *os << "is anything"; }
-  void DescribeNegationTo(::std::ostream* os) const {
-    // This is mostly for completeness' sake, as it's not very useful
-    // to write Not(A<bool>()).  However we cannot completely rule out
-    // such a possibility, and it doesn't hurt to be prepared.
-    *os << "never matches";
-  }
+  operator Matcher<T>() const { return A<T>(); }
 };
 
 // Implements the polymorphic IsNull() matcher, which matches any raw or smart
@@ -3437,9 +3443,7 @@ class UnorderedElementsAreMatcherImpl
       : UnorderedElementsAreMatcherImplBase(matcher_flags) {
     for (; first != last; ++first) {
       matchers_.push_back(MatcherCast<const Element&>(*first));
-    }
-    for (const auto& m : matchers_) {
-      matcher_describers().push_back(m.GetDescriber());
+      matcher_describers().push_back(matchers_.back().GetDescriber());
     }
   }
 
@@ -4064,14 +4068,12 @@ const internal::AnythingMatcher _ = {};
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
 inline Matcher<T> A() {
-  return _;
+  return Matcher<T>(new internal::AnyMatcherImpl<T>());
 }
 
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
-inline Matcher<T> An() {
-  return _;
-}
+inline Matcher<T> An() { return A<T>(); }
 
 template <typename T, typename M>
 Matcher<T> internal::MatcherCastImpl<T, M>::CastImpl(
