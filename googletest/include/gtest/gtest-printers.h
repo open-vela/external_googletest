@@ -655,22 +655,16 @@ void PrintTo(const ::std::pair<T1, T2>& value, ::std::ostream* os) {
   *os << ')';
 }
 
-template <typename T>
-void PrintWithNameTo(const T& value, ::std::ostream* os) {
-  internal::PrintTo<T>(value, os);
+#if GTEST_HAS_RTTI
+inline void PrintTo(const ::std::type_info& value, ::std::ostream* os) {
+  internal::PrintTo<::std::type_info>(value, os);
   *os << " (\"" << value.name() << "\")";
 }
 
-#if GTEST_HAS_RTTI
-
-inline void PrintTo(const ::std::type_info& value, ::std::ostream* os) {
-  internal::PrintWithNameTo(value, os);
-}
-
 inline void PrintTo(const ::std::type_index& value, ::std::ostream* os) {
-  internal::PrintWithNameTo(value, os);
+  internal::PrintTo<::std::type_index>(value, os);
+  *os << " (\"" << value.name() << "\")";
 }
-
 #endif  // GTEST_HAS_RTTI
 
 // Implements printing a non-reference type T by letting the compiler

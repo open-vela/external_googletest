@@ -1590,36 +1590,57 @@ TEST(PrintToStringTest, WorksForCharArrayWithEmbeddedNul) {
 }
 
 #if GTEST_HAS_RTTI
-TEST(PrintToStringTest, IncludesNameWithTypeInfoAndTypeIndex) {
-  // The following lambda tests that both the printed string for the specified
-  // `typeid`, and the one for its `std::type_index` contain the string returned
-  // by its `name()` member function.
-  const auto TestTypeId = [](const ::std::type_info& id) {
-    const auto name = id.name();
-    const auto contains_name = [name](const ::std::string& str) {
-      return str.find(name) != ::std::string::npos;
-    };
-    EXPECT_TRUE(contains_name(PrintToString(id)));
-    EXPECT_TRUE(contains_name(PrintToString(::std::type_index{id})));
-  };
+template <typename T>
+class PrintToStringTest : public testing::Test {
+ public:
+  using TestType = T;
+};
 
-  TestTypeId(typeid(void));
-  TestTypeId(typeid(int));
-  TestTypeId(typeid(const volatile int*));
+struct PrintBase {
+  virtual ~PrintBase() = default;
+};
+struct PrintDerived : PrintBase {};
 
-  struct Base {
-    virtual ~Base() = default;
-  };
-  struct Derived : Base {};
+using PrintToStringTestTypes =
+    testing::Types<void, int, const volatile int*, PrintBase, PrintDerived>;
+TYPED_TEST_SUITE(PrintToStringTest, PrintToStringTestTypes);
 
-  TestTypeId(typeid(Base));
-  TestTypeId(typeid(Derived));
+// Returns `true` if `haystack` contains `needle`.
+//
+// FIXME: Replace with `EXPECT_THAT(haystack, HasSubstr(needle))` once
+// GoogleTest starts depending on GoogleMock.
+bool ContainsSubstr(const std::string& haystack, const std::string& needle) {
+  return haystack.find(needle) != std::string::npos;
+}
 
-  Derived derived;
-  Base& base = derived;
+TYPED_TEST(PrintToStringTest, IncludesNameWithTypeInfoAndTypeIndex) {
+  const ::std::type_info& info = typeid(typename TestFixture::TestType);
+  SCOPED_TRACE(info.name());
+  EXPECT_TRUE(ContainsSubstr(PrintToString(info), info.name()));
+  EXPECT_TRUE(
+      ContainsSubstr(PrintToString(::std::type_index{info}), info.name()));
+}
 
-  TestTypeId(typeid(base));
-  TestTypeId(typeid(derived));
+TEST(PrintToStringTest, IncludesNameWithTypeInfoAndTypeIndexViaBaseRef) {
+  PrintDerived derived;
+  PrintBase& base = derived;
+
+  {
+    const ::std::type_info& derived_info = typeid(derived);
+    SCOPED_TRACE(derived_info.name());
+    EXPECT_TRUE(
+        ContainsSubstr(PrintToString(derived_info), derived_info.name()));
+    EXPECT_TRUE(ContainsSubstr(PrintToString(::std::type_index{derived_info}),
+                               derived_info.name()));
+  }
+  {
+    const ::std::type_info& base_ref_info = typeid(base);
+    SCOPED_TRACE(base_ref_info.name());
+    EXPECT_TRUE(
+        ContainsSubstr(PrintToString(base_ref_info), base_ref_info.name()));
+    EXPECT_TRUE(ContainsSubstr(PrintToString(::std::type_index{base_ref_info}),
+                               base_ref_info.name()));
+  }
 }
 #endif  // GTEST_HAS_RTTI
 
