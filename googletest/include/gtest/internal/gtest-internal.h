@@ -895,16 +895,16 @@ template <typename T>
 class HasDebugStringAndShortDebugString {
  private:
   template <typename C>
-  static auto CheckDebugString(C*) -> typename std::is_same<
+  static constexpr auto CheckDebugString(C*) -> typename std::is_same<
       std::string, decltype(std::declval<const C>().DebugString())>::type;
   template <typename>
-  static std::false_type CheckDebugString(...);
+  static constexpr std::false_type CheckDebugString(...);
 
   template <typename C>
-  static auto CheckShortDebugString(C*) -> typename std::is_same<
+  static constexpr auto CheckShortDebugString(C*) -> typename std::is_same<
       std::string, decltype(std::declval<const C>().ShortDebugString())>::type;
   template <typename>
-  static std::false_type CheckShortDebugString(...);
+  static constexpr std::false_type CheckShortDebugString(...);
 
   using HasDebugStringType = decltype(CheckDebugString<T>(nullptr));
   using HasShortDebugStringType = decltype(CheckShortDebugString<T>(nullptr));
