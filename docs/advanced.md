@@ -813,8 +813,7 @@ initialized from the command-line flag `--gtest_death_test_style`).
     consideration to be run - much like the `threadsafe` mode on POSIX.
 
 Other values for the variable are illegal and will cause the death test to fail.
-Currently, the flag's default value is
-**`"fast"`**.
+Currently, the flag's default value is **"fast"**
 
 1.  the child's exit status satisfies the predicate, and
 2.  the child's stderr matches the regular expression.
@@ -1205,10 +1204,10 @@ class FooTest : public testing::Test {
   }
 
   // You can define per-test set-up logic as usual.
-  void SetUp() override { ... }
+  virtual void SetUp() { ... }
 
   // You can define per-test tear-down logic as usual.
-  void TearDown() override { ... }
+  virtual void TearDown() { ... }
 
   // Some expensive resource shared by all tests.
   static T* shared_resource_;
@@ -1239,7 +1238,7 @@ First, you subclass the `::testing::Environment` class to define a test
 environment, which knows how to set-up and tear-down:
 
 ```c++
-class Environment : public ::testing::Environment {
+class Environment : public testing::Environment {
  public:
   ~Environment() override {}
 
@@ -1375,7 +1374,7 @@ The following statement will instantiate tests from the `FooTest` test suite
 each with parameter values `"meeny"`, `"miny"`, and `"moe"`.
 
 ```c++
-INSTANTIATE_TEST_SUITE_P(MeenyMinyMoe,
+INSTANTIATE_TEST_SUITE_P(InstantiationName,
                          FooTest,
                          testing::Values("meeny", "miny", "moe"));
 ```
@@ -1384,53 +1383,50 @@ INSTANTIATE_TEST_SUITE_P(MeenyMinyMoe,
 NOTE: The code above must be placed at global or namespace scope, not at
 function scope.
 
-The first argument to `INSTANTIATE_TEST_SUITE_P` is a unique name for the
-instantiation of the test suite. The next argument is the name of the test
-pattern, and the last is the parameter generator.
-
-You can instantiate a test pattern more than once, so to distinguish different
-instances of the pattern, the instantiation name is added as a prefix to the
-actual test suite name. Remember to pick unique prefixes for different
-instantiations. The tests from the instantiation above will have these names:
-
-*   `MeenyMinyMoe/FooTest.DoesBlah/0` for `"meeny"`
-*   `MeenyMinyMoe/FooTest.DoesBlah/1` for `"miny"`
-*   `MeenyMinyMoe/FooTest.DoesBlah/2` for `"moe"`
-*   `MeenyMinyMoe/FooTest.HasBlahBlah/0` for `"meeny"`
-*   `MeenyMinyMoe/FooTest.HasBlahBlah/1` for `"miny"`
-*   `MeenyMinyMoe/FooTest.HasBlahBlah/2` for `"moe"`
-
-You can use these names in [`--gtest_filter`](#running-a-subset-of-the-tests).
-
-The following statement will instantiate all tests from `FooTest` again, each
-with parameter values `"cat"` and `"dog"`:
-
-```c++
-const char* pets[] = {"cat", "dog"};
-INSTANTIATE_TEST_SUITE_P(Pets, FooTest, testing::ValuesIn(pets));
-```
-
-The tests from the instantiation above will have these names:
-
-*   `Pets/FooTest.DoesBlah/0` for `"cat"`
-*   `Pets/FooTest.DoesBlah/1` for `"dog"`
-*   `Pets/FooTest.HasBlahBlah/0` for `"cat"`
-*   `Pets/FooTest.HasBlahBlah/1` for `"dog"`
-
-Please note that `INSTANTIATE_TEST_SUITE_P` will instantiate *all* tests in the
-given test suite, whether their definitions come before or *after* the
-`INSTANTIATE_TEST_SUITE_P` statement.
-
-Additionally, by default, every `TEST_P` without a corresponding
-`INSTANTIATE_TEST_SUITE_P` causes a failing test in test suite
-`GoogleTestVerification`. If you have a test suite where that omission is not an
-error, for example it is in a library that may be linked in for other reasons or
-where the list of test cases is dynamic and may be empty, then this check can be
-suppressed by tagging the test suite:
+Per default, every `TEST_P` without a corresponding `INSTANTIATE_TEST_SUITE_P`
+causes a failing test in test suite `GoogleTestVerification`. If you have a test
+suite where that omission is not an error, for example it is in a library that
+may be linked in for other reason or where the list of test cases is dynamic and
+may be empty, then this check can be suppressed by tagging the test suite:
 
 ```c++
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FooTest);
 ```
+
+To distinguish different instances of the pattern (yes, you can instantiate it
+more than once), the first argument to `INSTANTIATE_TEST_SUITE_P` is a prefix
+that will be added to the actual test suite name. Remember to pick unique
+prefixes for different instantiations. The tests from the instantiation above
+will have these names:
+
+*   `InstantiationName/FooTest.DoesBlah/0` for `"meeny"`
+*   `InstantiationName/FooTest.DoesBlah/1` for `"miny"`
+*   `InstantiationName/FooTest.DoesBlah/2` for `"moe"`
+*   `InstantiationName/FooTest.HasBlahBlah/0` for `"meeny"`
+*   `InstantiationName/FooTest.HasBlahBlah/1` for `"miny"`
+*   `InstantiationName/FooTest.HasBlahBlah/2` for `"moe"`
+
+You can use these names in [`--gtest_filter`](#running-a-subset-of-the-tests).
+
+This statement will instantiate all tests from `FooTest` again, each with
+parameter values `"cat"` and `"dog"`:
+
+```c++
+const char* pets[] = {"cat", "dog"};
+INSTANTIATE_TEST_SUITE_P(AnotherInstantiationName, FooTest,
+                         testing::ValuesIn(pets));
+```
+
+The tests from the instantiation above will have these names:
+
+*   `AnotherInstantiationName/FooTest.DoesBlah/0` for `"cat"`
+*   `AnotherInstantiationName/FooTest.DoesBlah/1` for `"dog"`
+*   `AnotherInstantiationName/FooTest.HasBlahBlah/0` for `"cat"`
+*   `AnotherInstantiationName/FooTest.HasBlahBlah/1` for `"dog"`
+
+Please note that `INSTANTIATE_TEST_SUITE_P` will instantiate *all* tests in the
+given test suite, whether their definitions come before or *after* the
+`INSTANTIATE_TEST_SUITE_P` statement.
 
 You can see [sample7_unittest.cc] and [sample8_unittest.cc] for more examples.
 
@@ -1741,11 +1737,10 @@ To test them, we use the following special techniques:
     }
     ```
 
-    Pay special attention when your class is defined in a namespace. If you want
-    your test fixtures and tests to be friends of your class, then they must be
-    defined in the exact same namespace (no anonymous or inline namespaces).
-
-    For example, if the code to be tested looks like:
+    Pay special attention when your class is defined in a namespace, as you
+    should define your test fixtures and tests in the same namespace if you want
+    them to be friends of your class. For example, if the code to be tested
+    looks like:
 
     ```c++
     namespace my_namespace {
@@ -1975,13 +1970,13 @@ Here's an example:
 ```c++
   class MinimalistPrinter : public testing::EmptyTestEventListener {
     // Called before a test starts.
-    void OnTestStart(const testing::TestInfo& test_info) override {
+    virtual void OnTestStart(const testing::TestInfo& test_info) {
       printf("*** Test %s.%s starting.\n",
              test_info.test_suite_name(), test_info.name());
     }
 
     // Called after a failed assertion or a SUCCESS().
-    void OnTestPartResult(const testing::TestPartResult& test_part_result) override {
+    virtual void OnTestPartResult(const testing::TestPartResult& test_part_result) {
       printf("%s in %s:%d\n%s\n",
              test_part_result.failed() ? "*** Failure" : "Success",
              test_part_result.file_name(),
@@ -1990,7 +1985,7 @@ Here's an example:
     }
 
     // Called after a test ends.
-    void OnTestEnd(const testing::TestInfo& test_info) override {
+    virtual void OnTestEnd(const testing::TestInfo& test_info) {
       printf("*** Test %s.%s ending.\n",
              test_info.test_suite_name(), test_info.name());
     }
