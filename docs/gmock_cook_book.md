@@ -251,9 +251,9 @@ tests.
 
 ### Mocking Free Functions
 
-It's possible to use gMock to mock a free function (i.e. a C-style function or a
-static method). You just need to rewrite your code to use an interface (abstract
-class).
+It is not possible to directly mock a free function (i.e. a C-style function or
+a static method). If you need to, you can rewrite your code to use an interface
+(abstract class).
 
 Instead of calling a free function (say, `OpenFile`) directly, introduce an
 interface for it and have a concrete subclass that calls the free function:
@@ -268,7 +268,7 @@ class FileInterface {
 class File : public FileInterface {
  public:
   ...
-  virtual bool Open(const char* path, const char* mode) {
+  bool Open(const char* path, const char* mode) override {
      return OpenFile(path, mode);
   }
 };
@@ -512,9 +512,9 @@ The trick is to redispatch the method in the mock class:
 class ScopedMockLog : public LogSink {
  public:
   ...
-  virtual void send(LogSeverity severity, const char* full_filename,
+  void send(LogSeverity severity, const char* full_filename,
                     const char* base_filename, int line, const tm* tm_time,
-                    const char* message, size_t message_len) {
+                    const char* message, size_t message_len) override {
     // We are only interested in the log severity, full file name, and
     // log message.
     Log(severity, full_filename, std::string(message, message_len));
@@ -2705,17 +2705,9 @@ behavior nondeterministic. A better way is to use gMock actions and
 `Notification` objects to force your asynchronous test to behave synchronously.
 
 ```cpp
-using ::testing::DoAll;
-using ::testing::InvokeWithoutArgs;
-using ::testing::Return;
-
 class MockEventDispatcher : public EventDispatcher {
   MOCK_METHOD(bool, DispatchEvent, (int32), (override));
 };
-
-ACTION_P(Notify, notification) {
-  notification->Notify();
-}
 
 TEST(EventQueueTest, EnqueueEventTest) {
   MockEventDispatcher mock_event_dispatcher;
@@ -2724,7 +2716,7 @@ TEST(EventQueueTest, EnqueueEventTest) {
   const int32 kEventId = 321;
   absl::Notification done;
   EXPECT_CALL(mock_event_dispatcher, DispatchEvent(kEventId))
-      .WillOnce(Notify(&done));
+      .WillOnce([&done] { done.Notify(); });
 
   event_queue.EnqueueEvent(kEventId);
   done.WaitForNotification();
