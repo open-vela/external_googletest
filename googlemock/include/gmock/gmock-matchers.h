@@ -252,8 +252,8 @@
 
 // GOOGLETEST_CM0002 DO NOT DELETE
 
-#ifndef GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
-#define GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
+#ifndef GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
+#define GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
 
 #include <algorithm>
 #include <cmath>
@@ -343,7 +343,7 @@ class MatcherCastImpl {
     // constructor from M (this usually happens when T has an implicit
     // constructor from any type).
     //
-    // It won't work to unconditionally implict_cast
+    // It won't work to unconditionally implicit_cast
     // polymorphic_matcher_or_value to Matcher<T> because it won't trigger
     // a user-defined conversion from M to T if one exists (assuming M is
     // a value).
@@ -5389,4 +5389,4 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251 5046
 // declarations from this file.
 #include "gmock/internal/custom/gmock-matchers.h"
 
-#endif  // GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
+#endif  // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
