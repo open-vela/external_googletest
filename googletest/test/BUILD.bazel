@@ -95,7 +95,6 @@ cc_test(
         "googletest/test",
     ],
     linkopts = select({
-        "//:qnx": [],
         "//:windows": [],
         "//conditions:default": ["-pthread"],
     }),
