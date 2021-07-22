@@ -2385,12 +2385,11 @@ constexpr bool StaticAssertTypeEq() noexcept {
 //   }
 //
 // GOOGLETEST_CM0011 DO NOT DELETE
-#define GTEST_TEST_F(test_fixture, test_name)\
+#if !GTEST_DONT_DEFINE_TEST
+#define TEST_F(test_fixture, test_name)\
   GTEST_TEST_(test_fixture, test_name, test_fixture, \
               ::testing::internal::GetTypeId<test_fixture>())
-#if !GTEST_DONT_DEFINE_TEST_F
-#define TEST_F(test_fixture, test_name) GTEST_TEST_F(test_fixture, test_name)
-#endif
+#endif  // !GTEST_DONT_DEFINE_TEST
 
 // Returns a path to temporary directory.
 // Tries to determine an appropriate directory for the platform.
