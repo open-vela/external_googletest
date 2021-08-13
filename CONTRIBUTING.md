@@ -36,7 +36,7 @@ PR is acceptable as an alternative.
     This ensures that work isn't being duplicated and communicating your plan
     early also generally leads to better patches.
 4.  If your proposed change is accepted, and you haven't already done so, sign a
-    Contributor License Agreement ([see details above](#contributor-license-agreements)).
+    Contributor License Agreement (see details above).
 5.  Fork the desired repo, develop and test your code changes.
 6.  Ensure that your code adheres to the existing style in the sample to which
     you are contributing.
@@ -69,7 +69,7 @@ Let's keep it that way. Let's strive to be one of the friendliest communities in
 all of open source.
 
 As always, discuss Google Test in the official GoogleTest discussion group. You
-don't have to actually submit a code in order to sign up. Your participation
+don't have to actually submit code in order to sign up. Your participation
 itself is a valuable contribution.
 
 ## Style
