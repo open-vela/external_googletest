@@ -50,6 +50,7 @@
 #include <map>
 #include <ostream>  // NOLINT
 #include <sstream>
+#include <unordered_set>
 #include <vector>
 
 #include "gtest/gtest-assertion-result.h"
@@ -727,6 +728,11 @@ static bool PatternMatchesString(const std::string& name_str,
 
 namespace {
 
+bool IsGlobPattern(const std::string& pattern) {
+  return std::any_of(pattern.begin(), pattern.end(),
+                     [](const char c) { return c == '?' || c == '*'; });
+}
+
 class UnitTestFilter {
  public:
   UnitTestFilter() = default;
@@ -734,13 +740,21 @@ class UnitTestFilter {
   // Constructs a filter from a string of patterns separated by `:`.
   explicit UnitTestFilter(const std::string& filter) {
     // By design "" filter matches "" string.
-    SplitString(filter, ':', &patterns_);
+    std::vector<std::string> all_patterns;
+    SplitString(filter, ':', &all_patterns);
+    const auto exact_match_patterns_begin = std::partition(
+        all_patterns.begin(), all_patterns.end(), &IsGlobPattern);
+
+    glob_patterns_.reserve(exact_match_patterns_begin - all_patterns.begin());
+    std::move(all_patterns.begin(), exact_match_patterns_begin, std::inserter(glob_patterns_, glob_patterns_.begin()));
+    std::move(exact_match_patterns_begin, all_patterns.end(), std::inserter(exact_match_patterns_, exact_match_patterns_.begin()));
   }
 
   // Returns true if and only if name matches at least one of the patterns in
   // the filter.
   bool MatchesName(const std::string& name) const {
-    return std::any_of(patterns_.begin(), patterns_.end(),
+    return exact_match_patterns_.count(name) ||
+           std::any_of(glob_patterns_.begin(), glob_patterns_.end(),
                        [&name](const std::string& pattern) {
                          return PatternMatchesString(
                              name, pattern.c_str(),
@@ -749,7 +763,8 @@ class UnitTestFilter {
   }
 
  private:
-  std::vector<std::string> patterns_;
+  std::vector<std::string> glob_patterns_;
+  std::unordered_set<std::string> exact_match_patterns_;
 };
 
 class PositiveAndNegativeUnitTestFilter {
@@ -6292,8 +6307,8 @@ void UnitTestImpl::UnshuffleTests() {
 // For example, if Foo() calls Bar(), which in turn calls
 // GetCurrentOsStackTraceExceptTop(..., 1), Foo() will be included in
 // the trace but Bar() and GetCurrentOsStackTraceExceptTop() won't.
-GTEST_NO_INLINE_ GTEST_NO_TAIL_CALL_ std::string
-GetCurrentOsStackTraceExceptTop(UnitTest* /*unit_test*/, int skip_count) {
+std::string GetCurrentOsStackTraceExceptTop(UnitTest* /*unit_test*/,
+                                            int skip_count) {
   // We pass skip_count + 1 to skip this wrapper function in addition
   // to what the user really wants to skip.
   return GetUnitTestImpl()->CurrentOsStackTraceExceptTop(skip_count + 1);
