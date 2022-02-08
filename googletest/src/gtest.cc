@@ -746,14 +746,17 @@ class UnitTestFilter {
         all_patterns.begin(), all_patterns.end(), &IsGlobPattern);
 
     glob_patterns_.reserve(exact_match_patterns_begin - all_patterns.begin());
-    std::move(all_patterns.begin(), exact_match_patterns_begin, std::inserter(glob_patterns_, glob_patterns_.begin()));
-    std::move(exact_match_patterns_begin, all_patterns.end(), std::inserter(exact_match_patterns_, exact_match_patterns_.begin()));
+    std::move(all_patterns.begin(), exact_match_patterns_begin,
+              std::inserter(glob_patterns_, glob_patterns_.begin()));
+    std::move(
+        exact_match_patterns_begin, all_patterns.end(),
+        std::inserter(exact_match_patterns_, exact_match_patterns_.begin()));
   }
 
   // Returns true if and only if name matches at least one of the patterns in
   // the filter.
   bool MatchesName(const std::string& name) const {
-    return exact_match_patterns_.count(name) ||
+    return exact_match_patterns_.count(name) > 0 ||
            std::any_of(glob_patterns_.begin(), glob_patterns_.end(),
                        [&name](const std::string& pattern) {
                          return PatternMatchesString(
