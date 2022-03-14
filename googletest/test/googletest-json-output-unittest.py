@@ -91,7 +91,7 @@ EXPECTED_NON_EMPTY = {
         u'testsuite': [{
             u'name': u'Succeeds',
             u'file': u'gtest_xml_output_unittest_.cc',
-            u"line": 51,
+            u'line': 51,
             u'status': u'RUN',
             u'result': u'COMPLETED',
             u'time': u'*',
@@ -666,7 +666,7 @@ EXPECTED_FILTERED = {
         u'testsuite': [{
             u'name': u'Succeeds',
             u'file': u'gtest_xml_output_unittest_.cc',
-            u"line": 51,
+            u'line': 51,
             u'status': u'RUN',
             u'result': u'COMPLETED',
             u'time': u'*',
