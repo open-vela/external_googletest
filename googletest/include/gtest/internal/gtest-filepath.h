@@ -63,8 +63,8 @@ namespace internal {
 
 class GTEST_API_ FilePath {
  public:
-  FilePath() : pathname_("") {}
-  FilePath(const FilePath& rhs) : pathname_(rhs.pathname_) {}
+  FilePath() : pathname_("") { }
+  FilePath(const FilePath& rhs) : pathname_(rhs.pathname_) { }
 
   explicit FilePath(const std::string& pathname) : pathname_(pathname) {
     Normalize();
@@ -75,7 +75,9 @@ class GTEST_API_ FilePath {
     return *this;
   }
 
-  void Set(const FilePath& rhs) { pathname_ = rhs.pathname_; }
+  void Set(const FilePath& rhs) {
+    pathname_ = rhs.pathname_;
+  }
 
   const std::string& string() const { return pathname_; }
   const char* c_str() const { return pathname_.c_str(); }
@@ -88,7 +90,8 @@ class GTEST_API_ FilePath {
   // than zero (e.g., 12), returns "dir/test_12.xml".
   // On Windows platform, uses \ as the separator rather than /.
   static FilePath MakeFileName(const FilePath& directory,
-                               const FilePath& base_name, int number,
+                               const FilePath& base_name,
+                               int number,
                                const char* extension);
 
   // Given directory = "dir", relative_path = "test.xml",
