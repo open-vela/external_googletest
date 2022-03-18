@@ -32,21 +32,21 @@
 // generators objects produce correct parameter sequences and that
 // Google Test runtime instantiates correct tests from those sequences.
 
-#include "test/googletest-param-test-test.h"
-
-#include <algorithm>
-#include <iostream>
-#include <list>
-#include <set>
-#include <sstream>
-#include <string>
-#include <vector>
-
 #include "gtest/gtest.h"
-#include "src/gtest-internal-inl.h"  // for UnitTestOptions
 
-using ::std::sort;
+# include <algorithm>
+# include <iostream>
+# include <list>
+# include <set>
+# include <sstream>
+# include <string>
+# include <vector>
+
+# include "src/gtest-internal-inl.h"  // for UnitTestOptions
+# include "test/googletest-param-test-test.h"
+
 using ::std::vector;
+using ::std::sort;
 
 using ::testing::AddGlobalTestEnvironment;
 using ::testing::Bool;
@@ -85,14 +85,15 @@ void VerifyGenerator(const ParamGenerator<T>& generator,
     // We cannot use EXPECT_EQ() here as the values may be tuples,
     // which don't support <<.
     EXPECT_TRUE(expected_values[i] == *it)
-        << "where i is " << i << ", expected_values[i] is "
-        << PrintValue(expected_values[i]) << ", *it is " << PrintValue(*it)
+        << "where i is " << i
+        << ", expected_values[i] is " << PrintValue(expected_values[i])
+        << ", *it is " << PrintValue(*it)
         << ", and 'it' is an iterator created with the copy constructor.\n";
     ++it;
   }
   EXPECT_TRUE(it == generator.end())
-      << "At the presumed end of sequence when accessing via an iterator "
-      << "created with the copy constructor.\n";
+        << "At the presumed end of sequence when accessing via an iterator "
+        << "created with the copy constructor.\n";
 
   // Test the iterator assignment. The following lines verify that
   // the sequence accessed via an iterator initialized via the
@@ -104,14 +105,15 @@ void VerifyGenerator(const ParamGenerator<T>& generator,
         << "At element " << i << " when accessing via an iterator "
         << "created with the assignment operator.\n";
     EXPECT_TRUE(expected_values[i] == *it)
-        << "where i is " << i << ", expected_values[i] is "
-        << PrintValue(expected_values[i]) << ", *it is " << PrintValue(*it)
+        << "where i is " << i
+        << ", expected_values[i] is " << PrintValue(expected_values[i])
+        << ", *it is " << PrintValue(*it)
         << ", and 'it' is an iterator created with the copy constructor.\n";
     ++it;
   }
   EXPECT_TRUE(it == generator.end())
-      << "At the presumed end of sequence when accessing via an iterator "
-      << "created with the assignment operator.\n";
+        << "At the presumed end of sequence when accessing via an iterator "
+        << "created with the assignment operator.\n";
 }
 
 template <typename T>
@@ -214,7 +216,8 @@ class DogAdder {
   DogAdder(const DogAdder& other) : value_(other.value_.c_str()) {}
 
   DogAdder operator=(const DogAdder& other) {
-    if (this != &other) value_ = other.value_;
+    if (this != &other)
+      value_ = other.value_;
     return *this;
   }
   DogAdder operator+(const DogAdder& other) const {
@@ -222,7 +225,9 @@ class DogAdder {
     msg << value_.c_str() << other.value_.c_str();
     return DogAdder(msg.GetString().c_str());
   }
-  bool operator<(const DogAdder& other) const { return value_ < other.value_; }
+  bool operator<(const DogAdder& other) const {
+    return value_ < other.value_;
+  }
   const std::string& value() const { return value_; }
 
  private:
@@ -367,17 +372,19 @@ TEST(ValuesTest, ValuesWorksForValuesOfCompatibleTypes) {
 }
 
 TEST(ValuesTest, ValuesWorksForMaxLengthList) {
-  const ParamGenerator<int> gen =
-      Values(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150,
-             160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280,
-             290, 300, 310, 320, 330, 340, 350, 360, 370, 380, 390, 400, 410,
-             420, 430, 440, 450, 460, 470, 480, 490, 500);
+  const ParamGenerator<int> gen = Values(
+      10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+      110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
+      210, 220, 230, 240, 250, 260, 270, 280, 290, 300,
+      310, 320, 330, 340, 350, 360, 370, 380, 390, 400,
+      410, 420, 430, 440, 450, 460, 470, 480, 490, 500);
 
   const int expected_values[] = {
-      10,  20,  30,  40,  50,  60,  70,  80,  90,  100, 110, 120, 130,
-      140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260,
-      270, 280, 290, 300, 310, 320, 330, 340, 350, 360, 370, 380, 390,
-      400, 410, 420, 430, 440, 450, 460, 470, 480, 490, 500};
+      10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+      110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
+      210, 220, 230, 240, 250, 260, 270, 280, 290, 300,
+      310, 320, 330, 340, 350, 360, 370, 380, 390, 400,
+      410, 420, 430, 440, 450, 460, 470, 480, 490, 500};
   VerifyGenerator(gen, expected_values);
 }
 
@@ -523,6 +530,7 @@ TEST(CombineTest, NonDefaultConstructAssign) {
   EXPECT_TRUE(it == gen.end());
 }
 
+
 // Tests that an generator produces correct sequence after being
 // assigned from another generator.
 TEST(ParamGeneratorTest, AssignmentWorks) {
@@ -565,7 +573,7 @@ class TestGenerationEnvironment : public ::testing::Environment {
       Message msg;
       msg << "TestsExpandedAndRun/" << i;
       if (UnitTestOptions::FilterMatchesTest(
-              "TestExpansionModule/MultipleTestGenerationTest",
+             "TestExpansionModule/MultipleTestGenerationTest",
               msg.GetString().c_str())) {
         perform_check = true;
       }
@@ -587,11 +595,8 @@ class TestGenerationEnvironment : public ::testing::Environment {
   }
 
  private:
-  TestGenerationEnvironment()
-      : fixture_constructor_count_(0),
-        set_up_count_(0),
-        tear_down_count_(0),
-        test_body_count_(0) {}
+  TestGenerationEnvironment() : fixture_constructor_count_(0), set_up_count_(0),
+                                tear_down_count_(0), test_body_count_(0) {}
 
   int fixture_constructor_count_;
   int set_up_count_;
@@ -607,7 +612,7 @@ class TestGenerationTest : public TestWithParam<int> {
  public:
   enum {
     PARAMETER_COUNT =
-        sizeof(test_generation_params) / sizeof(test_generation_params[0])
+        sizeof(test_generation_params)/sizeof(test_generation_params[0])
   };
 
   typedef TestGenerationEnvironment<PARAMETER_COUNT> Environment;
@@ -631,9 +636,9 @@ class TestGenerationTest : public TestWithParam<int> {
     for (int i = 0; i < PARAMETER_COUNT; ++i) {
       Message test_name;
       test_name << "TestsExpandedAndRun/" << i;
-      if (!UnitTestOptions::FilterMatchesTest(
-              "TestExpansionModule/MultipleTestGenerationTest",
-              test_name.GetString())) {
+      if ( !UnitTestOptions::FilterMatchesTest(
+                "TestExpansionModule/MultipleTestGenerationTest",
+                test_name.GetString())) {
         all_tests_in_test_case_selected = false;
       }
     }
@@ -724,7 +729,8 @@ TEST_P(ExternalInstantiationTest, IsMultipleOf33) {
 // Tests that a parameterized test case can be instantiated with multiple
 // generators.
 class MultipleInstantiationTest : public TestWithParam<int> {};
-TEST_P(MultipleInstantiationTest, AllowsMultipleInstances) {}
+TEST_P(MultipleInstantiationTest, AllowsMultipleInstances) {
+}
 INSTANTIATE_TEST_SUITE_P(Sequence1, MultipleInstantiationTest, Values(1, 2));
 INSTANTIATE_TEST_SUITE_P(Sequence2, MultipleInstantiationTest, Range(3, 5));
 
@@ -774,7 +780,7 @@ class NamingTest : public TestWithParam<int> {};
 
 TEST_P(NamingTest, TestsReportCorrectNamesAndParameters) {
   const ::testing::TestInfo* const test_info =
-      ::testing::UnitTest::GetInstance()->current_test_info();
+     ::testing::UnitTest::GetInstance()->current_test_info();
 
   EXPECT_STREQ("ZeroToFiveSequence/NamingTest", test_info->test_suite_name());
 
@@ -795,7 +801,7 @@ class MacroNamingTest : public TestWithParam<int> {};
 
 TEST_P(PREFIX_WITH_MACRO(NamingTest), PREFIX_WITH_FOO(SomeTestName)) {
   const ::testing::TestInfo* const test_info =
-      ::testing::UnitTest::GetInstance()->current_test_info();
+     ::testing::UnitTest::GetInstance()->current_test_info();
 
   EXPECT_STREQ("FortyTwo/MacroNamingTest", test_info->test_suite_name());
   EXPECT_STREQ("FooSomeTestName/0", test_info->name());
@@ -809,7 +815,7 @@ class MacroNamingTestNonParametrized : public ::testing::Test {};
 TEST_F(PREFIX_WITH_MACRO(NamingTestNonParametrized),
        PREFIX_WITH_FOO(SomeTestName)) {
   const ::testing::TestInfo* const test_info =
-      ::testing::UnitTest::GetInstance()->current_test_info();
+     ::testing::UnitTest::GetInstance()->current_test_info();
 
   EXPECT_STREQ("MacroNamingTestNonParametrized", test_info->test_suite_name());
   EXPECT_STREQ("FooSomeTestName", test_info->name());
@@ -833,8 +839,9 @@ TEST(MacroNameing, LookupNames) {
   EXPECT_NE(  //
       know_suite_names.find("FortyTwo/MacroNamingTest"),
       know_suite_names.end());
-  EXPECT_NE(know_suite_names.find("MacroNamingTestNonParametrized"),
-            know_suite_names.end());
+  EXPECT_NE(
+      know_suite_names.find("MacroNamingTestNonParametrized"),
+      know_suite_names.end());
   // Check that the expected form of the test name actually exists.
   EXPECT_NE(  //
       know_test_names.find("FortyTwo/MacroNamingTest.FooSomeTestName/0"),
@@ -917,7 +924,7 @@ class CustomIntegerNamingTest : public TestWithParam<int> {};
 
 TEST_P(CustomIntegerNamingTest, TestsReportCorrectNames) {
   const ::testing::TestInfo* const test_info =
-      ::testing::UnitTest::GetInstance()->current_test_info();
+     ::testing::UnitTest::GetInstance()->current_test_info();
   Message test_name_stream;
   test_name_stream << "TestsReportCorrectNames/" << GetParam();
   EXPECT_STREQ(test_name_stream.GetString().c_str(), test_info->name());
@@ -942,7 +949,7 @@ class CustomStructNamingTest : public TestWithParam<CustomStruct> {};
 
 TEST_P(CustomStructNamingTest, TestsReportCorrectNames) {
   const ::testing::TestInfo* const test_info =
-      ::testing::UnitTest::GetInstance()->current_test_info();
+     ::testing::UnitTest::GetInstance()->current_test_info();
   Message test_name_stream;
   test_name_stream << "TestsReportCorrectNames/" << GetParam();
   EXPECT_STREQ(test_name_stream.GetString().c_str(), test_info->name());
@@ -972,7 +979,7 @@ class StatefulNamingTest : public ::testing::TestWithParam<int> {
 
 TEST_P(StatefulNamingTest, TestsReportCorrectNames) {
   const ::testing::TestInfo* const test_info =
-      ::testing::UnitTest::GetInstance()->current_test_info();
+     ::testing::UnitTest::GetInstance()->current_test_info();
   sum_ += GetParam();
   Message test_name_stream;
   test_name_stream << "TestsReportCorrectNames/" << sum_;
@@ -1000,7 +1007,7 @@ class CommentTest : public TestWithParam<Unstreamable> {};
 
 TEST_P(CommentTest, TestsCorrectlyReportUnstreamableParams) {
   const ::testing::TestInfo* const test_info =
-      ::testing::UnitTest::GetInstance()->current_test_info();
+     ::testing::UnitTest::GetInstance()->current_test_info();
 
   EXPECT_EQ(::testing::PrintToString(GetParam()), test_info->value_param());
 }
@@ -1014,8 +1021,7 @@ INSTANTIATE_TEST_SUITE_P(InstantiationWithComments, CommentTest,
 // perform simple tests on both.
 class NonParameterizedBaseTest : public ::testing::Test {
  public:
-  NonParameterizedBaseTest() : n_(17) {}
-
+  NonParameterizedBaseTest() : n_(17) { }
  protected:
   int n_;
 };
@@ -1023,14 +1029,16 @@ class NonParameterizedBaseTest : public ::testing::Test {
 class ParameterizedDerivedTest : public NonParameterizedBaseTest,
                                  public ::testing::WithParamInterface<int> {
  protected:
-  ParameterizedDerivedTest() : count_(0) {}
+  ParameterizedDerivedTest() : count_(0) { }
   int count_;
   static int global_count_;
 };
 
 int ParameterizedDerivedTest::global_count_ = 0;
 
-TEST_F(NonParameterizedBaseTest, FixtureIsInitialized) { EXPECT_EQ(17, n_); }
+TEST_F(NonParameterizedBaseTest, FixtureIsInitialized) {
+  EXPECT_EQ(17, n_);
+}
 
 TEST_P(ParameterizedDerivedTest, SeesSequence) {
   EXPECT_EQ(17, n_);
@@ -1038,10 +1046,11 @@ TEST_P(ParameterizedDerivedTest, SeesSequence) {
   EXPECT_EQ(GetParam(), global_count_++);
 }
 
-class ParameterizedDeathTest : public ::testing::TestWithParam<int> {};
+class ParameterizedDeathTest : public ::testing::TestWithParam<int> { };
 
 TEST_F(ParameterizedDeathTest, GetParamDiesFromTestF) {
-  EXPECT_DEATH_IF_SUPPORTED(GetParam(), ".* value-parameterized test .*");
+  EXPECT_DEATH_IF_SUPPORTED(GetParam(),
+                            ".* value-parameterized test .*");
 }
 
 INSTANTIATE_TEST_SUITE_P(RangeZeroToFive, ParameterizedDerivedTest,
@@ -1075,11 +1084,11 @@ class NotInstantiatedTest : public testing::TestWithParam<int> {};
 // ... we mark is as allowed.
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NotInstantiatedTest);
 
-TEST_P(NotInstantiatedTest, Used) {}
+TEST_P(NotInstantiatedTest, Used) { }
 
 using OtherName = NotInstantiatedTest;
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(OtherName);
-TEST_P(OtherName, Used) {}
+TEST_P(OtherName, Used) { }
 
 // Used but not instantiated, this would fail. but...
 template <typename T>
@@ -1088,11 +1097,11 @@ TYPED_TEST_SUITE_P(NotInstantiatedTypeTest);
 // ... we mark is as allowed.
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NotInstantiatedTypeTest);
 
-TYPED_TEST_P(NotInstantiatedTypeTest, Used) {}
+TYPED_TEST_P(NotInstantiatedTypeTest, Used) { }
 REGISTER_TYPED_TEST_SUITE_P(NotInstantiatedTypeTest, Used);
 }  // namespace works_here
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   // Used in TestGenerationTest test suite.
   AddGlobalTestEnvironment(TestGenerationTest::Environment::Instance());
   // Used in GeneratorEvaluationTest test suite. Tests that the updated value
