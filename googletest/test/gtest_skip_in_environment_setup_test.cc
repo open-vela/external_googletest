@@ -31,7 +31,6 @@
 // testcases being skipped.
 
 #include <iostream>
-
 #include "gtest/gtest.h"
 
 class SetupEnvironment : public testing::Environment {

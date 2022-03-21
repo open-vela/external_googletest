@@ -27,6 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 // A helper program for testing how Google Test determines whether to use
 // colors in the output.  It prints "YES" and returns 1 if Google Test
 // decides to use colors, and prints "NO" and returns 0 otherwise.
@@ -42,7 +43,8 @@ using testing::internal::ShouldUseColor;
 // created before main() is entered, and thus that ShouldUseColor()
 // works the same way as in a real Google-Test-based test.  We don't actual
 // run the TEST itself.
-TEST(GTestColorTest, Dummy) {}
+TEST(GTestColorTest, Dummy) {
+}
 
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);

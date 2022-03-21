@@ -35,7 +35,9 @@
 
 namespace {
 
-void Subroutine() { EXPECT_EQ(42, 42); }
+void Subroutine() {
+  EXPECT_EQ(42, 42);
+}
 
 TEST(NoFatalFailureTest, ExpectNoFatalFailure) {
   EXPECT_NO_FATAL_FAILURE(;);

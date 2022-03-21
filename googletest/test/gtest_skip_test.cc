@@ -46,6 +46,10 @@ class Fixture : public Test {
   }
 };
 
-TEST_F(Fixture, SkipsOneTest) { EXPECT_EQ(5, 7); }
+TEST_F(Fixture, SkipsOneTest) {
+  EXPECT_EQ(5, 7);
+}
 
-TEST_F(Fixture, SkipsAnotherTest) { EXPECT_EQ(99, 100); }
+TEST_F(Fixture, SkipsAnotherTest) {
+  EXPECT_EQ(99, 100);
+}
