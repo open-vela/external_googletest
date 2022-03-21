@@ -42,7 +42,7 @@ import difflib
 import os
 import re
 import sys
-from googletest.test import gtest_test_utils
+import gtest_test_utils
 
 
 # The flag for generating the golden file
