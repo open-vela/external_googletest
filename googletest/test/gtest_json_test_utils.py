@@ -50,8 +50,6 @@ def normalize(obj):
     elif key == 'failure':
       value = re.sub(r'^.*[/\\](.*:)\d+\n', '\\1*\n', value)
       return re.sub(r'Stack trace:\n(.|\n)*', 'Stack trace:\n*', value)
-    elif key == 'file':
-      return re.sub(r'^.*[/\\](.*)', '\\1', value)
     else:
       return normalize(value)
   if isinstance(obj, dict):
