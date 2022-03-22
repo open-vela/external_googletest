@@ -190,12 +190,12 @@ Some people put it in a `_test.cc`. This is fine when the interface being mocked
 `Foo` changes it, your test could break. (You can't really expect `Foo`'s
 maintainer to fix every test that uses `Foo`, can you?)
 
-So, the rule of thumb is: if you need to mock `Foo` and it's owned by others,
-define the mock class in `Foo`'s package (better, in a `testing` sub-package
-such that you can clearly separate production code and testing utilities), put
-it in a `.h` and a `cc_library`. Then everyone can reference them from their
-tests. If `Foo` ever changes, there is only one copy of `MockFoo` to change, and
-only tests that depend on the changed methods need to be fixed.
+Generally, you should not define mock classes you don't own. If you must mock
+such a class owned by others, define the mock class in `Foo`'s Bazel package
+(usually the same directory or a `testing` sub-directory), and put it in a `.h`
+and a `cc_library` with `testonly=True`. Then everyone can reference them from
+their tests. If `Foo` ever changes, there is only one copy of `MockFoo` to
+change, and only tests that depend on the changed methods need to be fixed.
 
 Another way to do it: you can introduce a thin layer `FooAdaptor` on top of
 `Foo` and code to this new interface. Since you own `FooAdaptor`, you can absorb
@@ -262,8 +262,9 @@ when you allocate mocks on the heap. You get that automatically if you use the
 `gtest_main` library already.
 
 **Important note:** gMock requires expectations to be set **before** the mock
-functions are called, otherwise the behavior is **undefined**. In particular,
-you mustn't interleave `EXPECT_CALL()s` and calls to the mock functions.
+functions are called, otherwise the behavior is **undefined**. Do not alternate
+between calls to `EXPECT_CALL()` and calls to the mock functions, and do not set
+any expectations on a mock after passing the mock to an API.
 
 This means `EXPECT_CALL()` should be read as expecting that a call will occur
 *in the future*, not that a call has occurred. Why does gMock work like that?
@@ -371,8 +372,8 @@ convenient way of saying "any value".
 In the above examples, `100` and `50` are also matchers; implicitly, they are
 the same as `Eq(100)` and `Eq(50)`, which specify that the argument must be
 equal (using `operator==`) to the matcher argument. There are many
-[built-in matchers](gmock_cheat_sheet.md#MatcherList) for common types (as well
-as [custom matchers](gmock_cook_book.md#NewMatchers)); for example:
+[built-in matchers](reference/matchers.md) for common types (as well as
+[custom matchers](gmock_cook_book.md#NewMatchers)); for example:
 
 ```cpp
 using ::testing::Ge;
@@ -479,8 +480,8 @@ the *default* action for the function every time (unless, of course, you have a
 `WillRepeatedly()`.).
 
 What can we do inside `WillOnce()` besides `Return()`? You can return a
-reference using `ReturnRef(*variable*)`, or invoke a pre-defined function, among
-[others](gmock_cook_book.md#using-actions).
+reference using `ReturnRef(`*`variable`*`)`, or invoke a pre-defined function,
+among [others](gmock_cook_book.md#using-actions).
 
 **Important note:** The `EXPECT_CALL()` statement evaluates the action clause
 only once, even though the action may be performed many times. Therefore you
