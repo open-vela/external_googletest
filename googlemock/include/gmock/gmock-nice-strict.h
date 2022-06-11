@@ -63,7 +63,6 @@
 #ifndef GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_
 #define GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_
 
-#include <cstdint>
 #include <type_traits>
 
 #include "gmock/gmock-spec-builders.h"
@@ -110,37 +109,25 @@ constexpr bool HasStrictnessModifier() {
 template <typename Base>
 class NiceMockImpl {
  public:
-  NiceMockImpl() {
-    ::testing::Mock::AllowUninterestingCalls(reinterpret_cast<uintptr_t>(this));
-  }
+  NiceMockImpl() { ::testing::Mock::AllowUninterestingCalls(this); }
 
-  ~NiceMockImpl() {
-    ::testing::Mock::UnregisterCallReaction(reinterpret_cast<uintptr_t>(this));
-  }
+  ~NiceMockImpl() { ::testing::Mock::UnregisterCallReaction(this); }
 };
 
 template <typename Base>
 class NaggyMockImpl {
  public:
-  NaggyMockImpl() {
-    ::testing::Mock::WarnUninterestingCalls(reinterpret_cast<uintptr_t>(this));
-  }
+  NaggyMockImpl() { ::testing::Mock::WarnUninterestingCalls(this); }
 
-  ~NaggyMockImpl() {
-    ::testing::Mock::UnregisterCallReaction(reinterpret_cast<uintptr_t>(this));
-  }
+  ~NaggyMockImpl() { ::testing::Mock::UnregisterCallReaction(this); }
 };
 
 template <typename Base>
 class StrictMockImpl {
  public:
-  StrictMockImpl() {
-    ::testing::Mock::FailUninterestingCalls(reinterpret_cast<uintptr_t>(this));
-  }
+  StrictMockImpl() { ::testing::Mock::FailUninterestingCalls(this); }
 
-  ~StrictMockImpl() {
-    ::testing::Mock::UnregisterCallReaction(reinterpret_cast<uintptr_t>(this));
-  }
+  ~StrictMockImpl() { ::testing::Mock::UnregisterCallReaction(this); }
 };
 
 }  // namespace internal
