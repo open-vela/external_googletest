@@ -372,8 +372,6 @@ GTEST_DEFINE_string_(
 namespace testing {
 namespace internal {
 
-const uint32_t Random::kMaxRange;
-
 // Generates a random number from [0, range), using a Linear
 // Congruential Generator (LCG).  Crashes if 'range' is 0 or greater
 // than kMaxRange.
@@ -3280,7 +3278,8 @@ static void ColoredPrintf(GTestColor color, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
 
-  static const bool in_color_mode = ShouldUseColor(posix::IsATTY(posix::FileNo(stdout)) != 0);
+  static const bool in_color_mode =
+      ShouldUseColor(posix::IsATTY(posix::FileNo(stdout)) != 0);
   const bool use_color = in_color_mode && (color != GTestColor::kDefault);
 
   if (!use_color) {
