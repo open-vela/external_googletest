@@ -1710,7 +1710,7 @@ typedef GTestMutexLock MutexLock;
 // C-linkage.  Therefore it cannot be templatized to access
 // ThreadLocal<T>.  Hence the need for class
 // ThreadLocalValueHolderBase.
-class GTEST_API_ ThreadLocalValueHolderBase {
+class ThreadLocalValueHolderBase {
  public:
   virtual ~ThreadLocalValueHolderBase() {}
 };
