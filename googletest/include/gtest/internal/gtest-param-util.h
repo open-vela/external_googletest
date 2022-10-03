@@ -953,7 +953,7 @@ class CartesianProductHolder {
 template <typename From, typename To>
 class ParamGeneratorConverter : public ParamGeneratorInterface<To> {
  public:
-  ParamGeneratorConverter(ParamGenerator<From> gen)
+  ParamGeneratorConverter(ParamGenerator<From> gen) // NOLINT
       : generator_(std::move(gen)) {}
 
   ParamIteratorInterface<To>* Begin() const override {
@@ -1010,15 +1010,16 @@ class ParamGeneratorConverter : public ParamGeneratorInterface<To> {
 template <class Gen>
 class ParamConverterGenerator {
  public:
-  ParamConverterGenerator(ParamGenerator<Gen> g) : generator(g) {}
+  ParamConverterGenerator(ParamGenerator<Gen> g)  // NOLINT
+      : generator_(std::move(g)) {}
 
   template <typename T>
-  operator ParamGenerator<T>() const {
-    return ParamGenerator<T>(new ParamGeneratorConverter<Gen, T>(generator));
+  operator ParamGenerator<T>() const {  // NOLINT
+    return ParamGenerator<T>(new ParamGeneratorConverter<Gen, T>(generator_));
   }
 
  private:
-  ParamGenerator<Gen> generator;
+  ParamGenerator<Gen> generator_;
 };
 
 }  // namespace internal
