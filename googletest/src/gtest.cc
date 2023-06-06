@@ -55,6 +55,9 @@
 #include <sstream>
 #include <unordered_set>
 #include <vector>
+#ifdef __NuttX__
+#include <nuttx/tls.h>
+#endif
 
 #include "gtest/gtest-assertion-result.h"
 #include "gtest/gtest-spi.h"
@@ -144,6 +147,9 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_replace.h"
 #endif  // GTEST_HAS_ABSL
+
+// __attribute__ init_priority 100 mask higest for user
+#define HIGH_PRIORITY 100
 
 // Checks builtin compiler feature |x| while avoiding an extra layer of #ifdefs
 // at the callsite.
@@ -4954,6 +4960,9 @@ void StreamingListener::SocketWriter::MakeConnection() {
 const char* const OsStackTraceGetterInterface::kElidedFramesMarker =
     "... " GTEST_NAME_ " internal frames ...";
 
+std::vector<TestSuite*> UnitTestImpl::test_suites_ __attribute__((init_priority(HIGH_PRIORITY)));
+std::vector<int> UnitTestImpl::test_suite_indices_ __attribute__((init_priority(HIGH_PRIORITY)));
+
 std::string OsStackTraceGetter::CurrentStackTrace(int max_depth, int skip_count)
     GTEST_LOCK_EXCLUDED_(mutex_) {
 #if GTEST_HAS_ABSL
@@ -5132,6 +5141,15 @@ void TestEventListeners::SuppressEventForwarding() {
 
 // class UnitTest
 
+#ifdef __NuttX__
+void UnitTest::FreeInstance(void* instance) {
+    if (instance) {
+        UnitTest *proc = static_cast<UnitTest*>(instance);
+        delete proc;
+    }
+}
+#endif
+
 // Gets the singleton UnitTest object.  The first time this method is
 // called, a UnitTest object is constructed and returned.  Consecutive
 // calls will return the same object.
@@ -5147,6 +5165,23 @@ UnitTest* UnitTest::GetInstance() {
 #if defined(__BORLANDC__)
   static UnitTest* const instance = new UnitTest;
   return instance;
+#elif defined(__NuttX__)
+    static int index = -1;
+    UnitTest* instance = nullptr;
+
+    if (index < 0) {
+        index = task_tls_alloc(FreeInstance);
+    }
+    if (index >= 0) {
+        instance = (UnitTest*)task_tls_get_value(index);
+        if (instance == NULL) {
+            instance = new UnitTest;
+            if (instance) {
+                task_tls_set_value(index, reinterpret_cast<uintptr_t>(instance));
+            }
+        }
+    }
+    return instance;
 #else
   static UnitTest instance;
   return &instance;
@@ -5560,9 +5595,6 @@ UnitTestImpl::UnitTestImpl(UnitTest* parent)
 }
 
 UnitTestImpl::~UnitTestImpl() {
-  // Deletes every TestSuite.
-  ForEach(test_suites_, internal::Delete<TestSuite>);
-
   // Deletes every Environment.
   ForEach(environments_, internal::Delete<Environment>);
 
