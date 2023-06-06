@@ -871,13 +871,13 @@ class GTEST_API_ UnitTestImpl {
 
   // The vector of TestSuites in their original order.  It owns the
   // elements in the vector.
-  std::vector<TestSuite*> test_suites_;
+  static std::vector<TestSuite*> test_suites_;
 
   // Provides a level of indirection for the test suite list to allow
   // easy shuffling and restoring the test suite order.  The i-th
   // element of this vector is the index of the i-th test suite in the
   // shuffled order.
-  std::vector<int> test_suite_indices_;
+  static std::vector<int> test_suite_indices_;
 
   // ParameterizedTestRegistry object used to register value-parameterized
   // tests.
