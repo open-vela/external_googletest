@@ -1228,6 +1228,9 @@ class GTEST_API_ UnitTest {
   TestEventListeners& listeners();
 
  private:
+#ifdef __NuttX__
+  static void FreeInstance(void* instance);
+#endif
   // Registers and returns a global test environment.  When a test
   // program is run, all global test environments will be set-up in
   // the order they were registered.  After all tests in the program
