@@ -148,8 +148,8 @@
 #include "absl/strings/str_replace.h"
 #endif  // GTEST_HAS_ABSL
 
-// __attribute__ init_priority 100 mask higest for user
-#define HIGH_PRIORITY 100
+// __attribute__ init_priority 101 mask higest for user
+#define HIGH_PRIORITY 101
 
 // Checks builtin compiler feature |x| while avoiding an extra layer of #ifdefs
 // at the callsite.
