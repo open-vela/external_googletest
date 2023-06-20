@@ -434,8 +434,19 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 #define _HAS_EXCEPTIONS 1
 #endif  // _HAS_EXCEPTIONS
 #define GTEST_HAS_EXCEPTIONS _HAS_EXCEPTIONS
-#elif defined(__clang__) && defined(__EXCEPTIONS) && __EXCEPTIONS && __has_feature(cxx_exceptions)
-#define GTEST_HAS_EXCEPTIONS 1
+#elif defined(__clang__)
+// clang defines __EXCEPTIONS if and only if exceptions are enabled before clang
+// 220714, but if and only if cleanups are enabled after that. In Obj-C++ files,
+// there can be cleanups for ObjC exceptions which also need cleanups, even if
+// C++ exceptions are disabled. clang has __has_feature(cxx_exceptions) which
+// checks for C++ exceptions starting at clang r206352, but which checked for
+// cleanups prior to that. To reliably check for C++ exception availability with
+// clang, check for
+// __EXCEPTIONS && __has_feature(cxx_exceptions).
+#define GTEST_HAS_EXCEPTIONS (__EXCEPTIONS && __has_feature(cxx_exceptions))
+#elif defined(__GNUC__) && defined(__EXCEPTIONS)
+// gcc defines __EXCEPTIONS to 1 if and only if exceptions are enabled.
+#define GTEST_HAS_EXCEPTIONS __EXCEPTIONS
 #elif defined(__SUNPRO_CC)
 // Sun Pro CC supports exceptions.  However, there is no compile-time way of
 // detecting whether they are enabled or not.  Therefore, we assume that
