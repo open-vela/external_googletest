@@ -1061,6 +1061,13 @@ std::vector<int>& UnitTestImpl::GetTestSuiteIndices() {
     return get_test_suite_indices_;
 }
 
+void UnitTestImpl::ClearTestSuitesAndIndices() {
+  // Deletes every TestSuite.
+  ForEach(test_suites_, internal::Delete<TestSuite>);
+  test_suites_.clear();
+  test_suite_indices_.clear();
+}
+
 // Gets the number of successful test suites.
 int UnitTestImpl::successful_test_suite_count() const {
   return CountIf(test_suites_, TestSuitePassed);
@@ -5190,6 +5197,10 @@ UnitTest* UnitTest::GetInstance() {
   static UnitTest instance;
   return &instance;
 #endif  // defined(__BORLANDC__)
+}
+
+void UnitTest::ClearTestSuitesAndIndices() {
+  internal::UnitTestImpl::ClearTestSuitesAndIndices();
 }
 
 // Gets the number of successful test suites.
