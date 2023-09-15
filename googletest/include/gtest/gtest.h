@@ -1115,6 +1115,8 @@ class GTEST_API_ UnitTest {
   // Consecutive calls will return the same object.
   static UnitTest* GetInstance();
 
+  static void ClearTestSuitesAndIndices();
+
   // Runs all tests in this UnitTest object and prints the result.
   // Returns 0 if successful, or 1 otherwise.
   //

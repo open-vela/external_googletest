@@ -520,6 +520,8 @@ class GTEST_API_ UnitTestImpl {
   // shuffled order.
   static std::vector<int>& GetTestSuiteIndices();
 
+  static void ClearTestSuitesAndIndices();
+
   explicit UnitTestImpl(UnitTest* parent);
   virtual ~UnitTestImpl();
 
