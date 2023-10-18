@@ -148,9 +148,6 @@
 #include "absl/strings/str_replace.h"
 #endif  // GTEST_HAS_ABSL
 
-// __attribute__ init_priority 101 mask higest for user
-#define HIGH_PRIORITY 101
-
 // Checks builtin compiler feature |x| while avoiding an extra layer of #ifdefs
 // at the callsite.
 #if defined(__has_builtin)
@@ -1052,6 +1049,16 @@ UnitTestImpl::GetTestPartResultReporterForCurrentThread() {
 void UnitTestImpl::SetTestPartResultReporterForCurrentThread(
     TestPartResultReporterInterface* reporter) {
   per_thread_test_part_result_reporter_.set(reporter);
+}
+
+std::vector<TestSuite*>& UnitTestImpl::GetTestSuites() {
+    static std::vector<TestSuite*> get_test_suites_;
+    return get_test_suites_;
+}
+
+std::vector<int>& UnitTestImpl::GetTestSuiteIndices() {
+    static std::vector<int> get_test_suite_indices_;
+    return get_test_suite_indices_;
 }
 
 // Gets the number of successful test suites.
@@ -4959,9 +4966,6 @@ void StreamingListener::SocketWriter::MakeConnection() {
 
 const char* const OsStackTraceGetterInterface::kElidedFramesMarker =
     "... " GTEST_NAME_ " internal frames ...";
-
-std::vector<TestSuite*> UnitTestImpl::test_suites_ __attribute__((init_priority(HIGH_PRIORITY)));
-std::vector<int> UnitTestImpl::test_suite_indices_ __attribute__((init_priority(HIGH_PRIORITY)));
 
 std::string OsStackTraceGetter::CurrentStackTrace(int max_depth, int skip_count)
     GTEST_LOCK_EXCLUDED_(mutex_) {
