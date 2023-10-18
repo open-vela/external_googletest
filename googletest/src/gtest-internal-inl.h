@@ -62,6 +62,9 @@
 #include "gtest/gtest-spi.h"
 #include "gtest/gtest.h"
 
+#define test_suites_ UnitTestImpl::GetTestSuites()
+#define test_suite_indices_ UnitTestImpl::GetTestSuiteIndices()
+
 GTEST_DISABLE_MSC_WARNINGS_PUSH_(4251 \
 /* class A needs to have dll-interface to be used by clients of class B */)
 
@@ -507,6 +510,16 @@ class DefaultPerThreadTestPartResultReporter
 // proper locking.
 class GTEST_API_ UnitTestImpl {
  public:
+  // The vector of TestSuites in their original order.  It owns the
+  // elements in the vector.
+  static std::vector<TestSuite*>& GetTestSuites();
+
+  // Provides a level of indirection for the test suite list to allow
+  // easy shuffling and restoring the test suite order.  The i-th
+  // element of this vector is the index of the i-th test suite in the
+  // shuffled order.
+  static std::vector<int>& GetTestSuiteIndices();
+
   explicit UnitTestImpl(UnitTest* parent);
   virtual ~UnitTestImpl();
 
@@ -868,16 +881,6 @@ class GTEST_API_ UnitTestImpl {
   // The vector of environments that need to be set-up/torn-down
   // before/after the tests are run.
   std::vector<Environment*> environments_;
-
-  // The vector of TestSuites in their original order.  It owns the
-  // elements in the vector.
-  static std::vector<TestSuite*> test_suites_;
-
-  // Provides a level of indirection for the test suite list to allow
-  // easy shuffling and restoring the test suite order.  The i-th
-  // element of this vector is the index of the i-th test suite in the
-  // shuffled order.
-  static std::vector<int> test_suite_indices_;
 
   // ParameterizedTestRegistry object used to register value-parameterized
   // tests.
