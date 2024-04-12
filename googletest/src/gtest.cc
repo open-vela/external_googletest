@@ -55,7 +55,7 @@
 #include <sstream>
 #include <unordered_set>
 #include <vector>
-#if defined(__NuttX__) && !defined(BUILD_KERNEL)
+#ifdef __NuttX__
 #include <nuttx/tls.h>
 #endif
 
@@ -5176,7 +5176,7 @@ UnitTest* UnitTest::GetInstance() {
 #if defined(__BORLANDC__)
   static UnitTest* const instance = new UnitTest;
   return instance;
-#elif defined(__NuttX__) && !defined(BUILD_KERNEL)
+#elif defined(__NuttX__)
     static int index = -1;
     UnitTest* instance = nullptr;
 
