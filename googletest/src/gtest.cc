@@ -5154,10 +5154,16 @@ void TestEventListeners::SuppressEventForwarding() {
 
 #ifdef __NuttX__
 void UnitTest::FreeInstance(void* instance) {
-    if (instance) {
-        UnitTest *proc = static_cast<UnitTest*>(instance);
-        delete proc;
-    }
+  if (instance) {
+    UnitTest *proc = static_cast<UnitTest*>(instance);
+    delete proc;
+  }
+}
+
+static int g_instance_index;
+
+void UnitTest::AllocInstanceKey(void) {
+  g_instance_index = task_tls_alloc(FreeInstance);
 }
 #endif
 
@@ -5177,22 +5183,19 @@ UnitTest* UnitTest::GetInstance() {
   static UnitTest* const instance = new UnitTest;
   return instance;
 #elif defined(__NuttX__) && !defined(CONFIG_BUILD_KERNEL)
-    static int index = -1;
-    UnitTest* instance = nullptr;
+  UnitTest* instance = nullptr;
+  static pthread_once_t once = PTHREAD_ONCE_INIT;
 
-    if (index < 0) {
-        index = task_tls_alloc(FreeInstance);
-    }
-    if (index >= 0) {
-        instance = (UnitTest*)task_tls_get_value(index);
-        if (instance == NULL) {
-            instance = new UnitTest;
-            if (instance) {
-                task_tls_set_value(index, reinterpret_cast<uintptr_t>(instance));
-            }
-        }
-    }
-    return instance;
+  pthread_once(&once, AllocInstanceKey);
+  instance = (UnitTest*)task_tls_get_value(g_instance_index);
+  if (instance == nullptr) {
+      instance = new UnitTest;
+      if (instance) {
+          task_tls_set_value(g_instance_index, reinterpret_cast<uintptr_t>(instance));
+      }
+  }
+
+  return instance;
 #else
   static UnitTest instance;
   return &instance;
