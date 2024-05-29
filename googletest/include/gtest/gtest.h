@@ -1232,6 +1232,7 @@ class GTEST_API_ UnitTest {
  private:
 #ifdef __NuttX__
   static void FreeInstance(void* instance);
+  static void AllocInstanceKey(void);
 #endif
   // Registers and returns a global test environment.  When a test
   // program is run, all global test environments will be set-up in
