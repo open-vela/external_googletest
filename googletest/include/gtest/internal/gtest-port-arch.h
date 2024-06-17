@@ -106,6 +106,11 @@
 #ifndef GTEST_USES_POSIX_RE
 #define GTEST_USES_POSIX_RE 0
 #endif
+#ifdef CONFIG_CXX_WCHAR
+#define GTEST_HAS_STD_WSTRING 1
+#else
+#define GTEST_HAS_STD_WSTRING 0
+#endif
 
 #define GTEST_OS_AIX 0
 #define GTEST_OS_CYGWIN 0

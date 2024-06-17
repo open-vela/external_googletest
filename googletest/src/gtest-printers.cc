@@ -116,6 +116,13 @@ char32_t ToChar32(CharType in) {
       static_cast<typename std::make_unsigned<CharType>::type>(in));
 }
 
+// std::make_unsigned<wchar_t> might be unavailable.
+#if !GTEST_HAS_STD_WSTRING
+template <>
+char32_t ToChar32(wchar_t in) {
+  return static_cast<char32_t>(in);
+}
+#endif
 }  // namespace
 
 namespace internal {
