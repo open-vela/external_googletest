@@ -5152,7 +5152,7 @@ void TestEventListeners::SuppressEventForwarding() {
 
 // class UnitTest
 
-#ifdef __NuttX__
+#if defined(__NuttX__) && !defined(CONFIG_BUILD_KERNEL)
 void UnitTest::FreeInstance(void* instance) {
   if (instance) {
     UnitTest *proc = static_cast<UnitTest*>(instance);
