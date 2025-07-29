@@ -5160,7 +5160,7 @@ void UnitTest::FreeInstance(void* instance) {
   }
 }
 
-static int g_instance_index;
+static int g_instance_index = -1;
 
 void UnitTest::AllocInstanceKey(void) {
   g_instance_index = task_tls_alloc(FreeInstance);
