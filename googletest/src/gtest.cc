@@ -756,18 +756,35 @@ class UnitTestFilter {
   // Constructs a filter from a string of patterns separated by `:`.
   explicit UnitTestFilter(const std::string& filter) {
     // By design "" filter matches "" string.
-    std::vector<std::string> all_patterns;
-    SplitString(filter, ':', &all_patterns);
-    const auto exact_match_patterns_begin = std::partition(
-        all_patterns.begin(), all_patterns.end(), &IsGlobPattern);
+    size_t pattern_count;
+    size_t start = 0;
+    size_t end;
 
-    glob_patterns_.reserve(static_cast<size_t>(
-        std::distance(all_patterns.begin(), exact_match_patterns_begin)));
-    std::move(all_patterns.begin(), exact_match_patterns_begin,
-              std::inserter(glob_patterns_, glob_patterns_.begin()));
-    std::move(
-        exact_match_patterns_begin, all_patterns.end(),
-        std::inserter(exact_match_patterns_, exact_match_patterns_.begin()));
+    for (char c : filter) {
+        pattern_count += (c == ':');
+    }
+    pattern_count += !filter.empty();
+
+    glob_patterns_.clear();
+    exact_match_patterns_.clear();
+
+    end = filter.find(':');
+
+    while (true) {
+        std::string pattern = filter.substr(
+            start, (end == std::string::npos) ? std::string::npos : end - start);
+
+        if (IsGlobPattern(pattern)) {
+            glob_patterns_.push_back(std::move(pattern));
+        } else {
+            exact_match_patterns_.insert(std::move(pattern));
+        }
+
+        if (end == std::string::npos) break;
+
+        start = end + 1;
+        end = filter.find(':', start);
+    }
   }
 
   // Returns true if and only if name matches at least one of the patterns in
