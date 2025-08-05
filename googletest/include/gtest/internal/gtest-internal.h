@@ -1545,15 +1545,18 @@ class NeverThrown {
                                                                                \
   ::testing::TestInfo* const GTEST_TEST_CLASS_NAME_(test_suite_name,           \
                                                     test_name)::test_info_ =   \
-      ::testing::internal::MakeAndRegisterTestInfo(                            \
-          #test_suite_name, #test_name, nullptr, nullptr,                      \
-          ::testing::internal::CodeLocation(__FILE__, __LINE__), (parent_id),  \
-          ::testing::internal::SuiteApiResolver<                               \
-              parent_class>::GetSetUpCaseOrSuite(__FILE__, __LINE__),          \
-          ::testing::internal::SuiteApiResolver<                               \
-              parent_class>::GetTearDownCaseOrSuite(__FILE__, __LINE__),       \
-          new ::testing::internal::TestFactoryImpl<GTEST_TEST_CLASS_NAME_(     \
-              test_suite_name, test_name)>);                                   \
+      []() -> ::testing::TestInfo* {                                           \
+          return ::testing::internal::MakeAndRegisterTestInfo(                 \
+              #test_suite_name, #test_name, nullptr, nullptr,                  \
+              ::testing::internal::CodeLocation(__FILE__, __LINE__),           \
+              (parent_id),                                                     \
+              ::testing::internal::SuiteApiResolver<                           \
+                  parent_class>::GetSetUpCaseOrSuite(__FILE__, __LINE__),      \
+              ::testing::internal::SuiteApiResolver<                           \
+                  parent_class>::GetTearDownCaseOrSuite(__FILE__, __LINE__),   \
+              new ::testing::internal::TestFactoryImpl<GTEST_TEST_CLASS_NAME_( \
+                  test_suite_name, test_name)>);                               \
+      }();                                                                     \
   void GTEST_TEST_CLASS_NAME_(test_suite_name, test_name)::TestBody()
 
 #endif  // GOOGLETEST_INCLUDE_GTEST_INTERNAL_GTEST_INTERNAL_H_
