@@ -56,7 +56,7 @@
 #include <unordered_set>
 #include <vector>
 #if defined(__NuttX__) && !defined(CONFIG_BUILD_KERNEL)
-#include <nuttx/tls.h>
+#include <nuttx/tls_task.h>
 #endif
 
 #include "gtest/gtest-assertion-result.h"
